@@ -57,6 +57,9 @@ data/cache/
 data/local/
 data/private/
 
+# Local copyrighted paper sources and reference materials
+references/local/
+
 # Notebook checkpoints
 .ipynb_checkpoints/
 
