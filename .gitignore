@@ -1,0 +1,65 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Test, lint, and coverage artifacts
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Virtual environments and local Python installs
+.venv/
+venv/
+env/
+.env/
+
+# Local tool configuration
+.codex/config.toml
+.codex/rules/local.rules
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Local environment files and credentials
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+*.pem
+*.key
+*.crt
+*credentials*.json
+*service-account*.json
+application_default_credentials.json
+
+# Logs, temporary outputs, and local artifacts
+*.log
+*.Zone.Identifier
+*:Zone.Identifier
+logs/
+tmp/
+temp/
+outputs/
+runs/
+
+# Data
+data/raw/
+data/processed/
+data/cache/
+data/local/
+data/private/
+
+# Notebook checkpoints
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+Thumbs.db

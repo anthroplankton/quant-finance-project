@@ -1,0 +1,34 @@
+[project]
+name = "quant-finance-project"
+version = "0.1.0"
+description = "Quantitative Finance course project: Black-Litterman portfolio optimization with LLM-assisted news views."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy>=2.0",
+    "pandas>=2.2",
+    "scipy>=1.13",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.8",
+]
+notebook = [
+    "ipykernel>=6.0",
+    "jupyterlab>=4.0",
+]
+report = [
+    "matplotlib>=3.8",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
