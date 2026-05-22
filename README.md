@@ -2,7 +2,7 @@
 
 This repository is for a Quantitative Finance course project.
 
-The likely final project topic is Black-Litterman portfolio optimization with LLM-assisted news views. The model architecture is not finalized yet. The current stage focuses on course assignments, paper reading, architecture notes, and a reproducible baseline plan.
+The likely final project topic is news-aware LLM view generation for Black-Litterman portfolio optimization. The model architecture is not finalized yet. The current stage focuses on course assignments, paper reading, architecture notes, and a reproducible baseline plan.
 
 ## Current stage
 
@@ -21,11 +21,14 @@ The likely final project topic is Black-Litterman portfolio optimization with LL
 
 ## Planned direction
 
-The project may later implement:
+The project direction is:
 
-1. a baseline Black-Litterman pipeline;
-2. mocked LLM-generated views;
-3. live LLM/news workflows;
-4. backtesting and report-ready evaluation.
+1. a baseline Black-Litterman pipeline for engineering validation;
+2. mocked or deterministic LLM-generated views;
+3. news/event filtering, rationale, and reflection for view generation;
+4. agentic macro/micro reasoning for view synthesis;
+5. backtesting and report-ready evaluation.
+
+Live LLM/news workflows are optional later work and should only be added after offline schemas and baseline assumptions are clear.
 
 No live trading, broker integration, or financial advisory functionality is intended.
