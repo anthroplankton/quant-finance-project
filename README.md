@@ -2,13 +2,13 @@
 
 This repository is for a Quantitative Finance course project.
 
-The likely final project topic is news-aware LLM view generation for Black-Litterman portfolio optimization. The model architecture is not finalized yet. The current stage focuses on course assignments, paper reading, architecture notes, and a reproducible baseline plan.
+The active first-phase project direction is a Taiwan-market replication and adaptation of **The Hype Index: an NLP-driven Measure of Market News Attention** (arXiv:2506.06329). The initial goal is to construct raw and market-cap-adjusted news-attention measures for a Taiwan 50 large-cap universe.
 
 ## Current stage
 
 - Course assignments
 - Paper reading notes
-- Architecture design notes
+- Taiwan Hype Index architecture design notes
 - Minimal Python project setup
 
 ## Repository layout
@@ -23,12 +23,12 @@ The likely final project topic is news-aware LLM view generation for Black-Litte
 
 The project direction is:
 
-1. a baseline Black-Litterman pipeline for engineering validation;
-2. mocked or deterministic LLM-generated views;
-3. news/event filtering, rationale, and reflection for view generation;
-4. agentic macro/micro reasoning for view synthesis;
-5. backtesting and report-ready evaluation.
+1. a Taiwan 50 universe and documented data-source plan;
+2. stock and sector news-count Hype Index construction;
+3. market-cap-adjusted Hype Index construction;
+4. empirical analysis against events and realized volatility;
+5. report-ready documentation of assumptions, risks, and limitations.
 
-Live LLM/news workflows are optional later work and should only be added after offline schemas and baseline assumptions are clear.
+Sentiment, forecasting, LLM-assisted Black-Litterman, and portfolio workflows are outside the active first phase.
 
 No live trading, broker integration, or financial advisory functionality is intended.

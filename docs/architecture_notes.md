@@ -1,148 +1,113 @@
 # Architecture Notes
 
-這份文件整理目前的模型設計方向。個別論文摘要放在 `docs/papers/`；這裡主要說明三篇論文如何合成一個可實作、也適合寫進課程報告的專案架構。
+這份文件整理目前第一階段的專案架構。現階段只基於 **The Hype Index: an NLP-driven Measure of Market News Attention**，主軸是把該 paper 的 news-attention index 方法 replication / adaptation 到 Taiwan 50 universe。
 
-## 1. 專案主軸
+## 1. Active First-Phase Architecture
 
-此專案的主軸是 **news-aware LLM view generation for Black-Litterman portfolio optimization**。
-
-這個專案研究如何把新聞、事件與 LLM reasoning 轉成 Black-Litterman 可使用的 views。Black-Litterman 在這裡扮演 portfolio integration framework，負責把 market prior 與 views 整合成 posterior return；portfolio optimization 再根據 posterior return 產生最終權重。LLM 的角色是輔助 view generation、rationale 與 uncertainty signals，最終權重則由 Black-Litterman posterior 與 optimizer 產生。
-
-因此，較精確的研究方向可以寫成「news/event-informed LLM views -> Black-Litterman」。
-
-## 2. 整體設計想法
-
-目前暫定的資料流如下：
+目前的 active first implementation 是：
 
 ```text
-Historical prices / returns
-        ↓
-Market prior and covariance estimation
-        ├── pi
-        └── Sigma
-
-News and event data
-        ↓
-Information Retrieval
-        ↓
-Candidate news pool
-        ↓
-Reasoning Agent / news filtering
-        ↓
-Selected news + rationality
-        ↓
-Contextualization
-        ↓
-Macro-Reasoning Agent
-        ↓
-Micro-Reasoning Agent
-        ↓
-View Synthesizer
-        ├── P
-        ├── Q
-        └── Omega or named uncertainty signals
-        ↓
-Black-Litterman posterior return mu_BL
-        ↓
-Mean-variance optimization
-        ↓
-Portfolio weights
-        ↓
-Backtest
+news/headlines
+    -> entity matching
+    -> news counts
+    -> raw Hype Index
+    -> market-cap-adjusted Hype Index
+    -> empirical analysis
 ```
 
-圖中的 $P$ 是 picking matrix，$Q$ 是 view vector，$\Omega$ 是 view uncertainty matrix。Market prior 由 $\pi$ 表示，資產報酬的 covariance matrix 由 $\Sigma$ 表示，$\tau$ 則用來調整 prior 與 views 的相對信心。Black-Litterman posterior return 記為 $\mu_{BL}$。
+這個流程的核心是把非結構化新聞轉成可檢查的 attention time series。第一階段的架構只涵蓋 Hype Index replication：新聞來源、公司名稱比對、ticker alias、產業分類、market cap 權重與時間對齊方式都需要能被重現。
 
-這張圖呈現的是完整設計方向。早期可以使用 deterministic fixtures 或 mocked views 來測試資料格式、公式與 backtest 流程；後續再逐步接上 live news 或 live LLM。整體資料流仍以 news-aware view generation 為目標。
+## 2. Research Question
 
-## 3. 三篇論文的分工
+新的第一階段問題可以表述為：
 
-`LLM-Enhanced Black-Litterman Portfolio Optimization` 解決的是 views 如何進入 Black-Litterman。它示範如何把 repeated LLM forecasts 轉成 $Q$，用 repeated-output variance 建立 diagonal $\Omega$，並讓最終權重仍由 Black-Litterman posterior 與 optimizer 決定。這篇論文很適合作為 BL integration baseline，但它沒有完整處理新聞檢索、新聞篩選或事件推理。
+> 台灣大型權值股的新聞曝光是否和其經濟規模成比例？若不成比例，這種 raw attention 與 market-cap-adjusted attention 是否能描述事件、產業關注度與 realized volatility 的變化？
 
-`From News to Forecast` 補上的是 news-processing layer。它的流程是先建立 candidate news pool，再由 Reasoning Agent 篩選 relevant news、記錄 rationality，最後用 Evaluation Agent 根據 prediction error 與 missed news 反思 selection logic。這篇論文對此專案的「新聞 view」主軸特別重要。
+這個問題適合課程專案，因為它同時包含文獻 replication、在地市場 adaptation、資料清理、可解釋公式與後續 empirical testing。Taiwan 50 constituents 可作為初始 large-cap universe，讓新聞比對與 market cap 權重先在一個範圍清楚的資產池內完成。
 
-`Nexus` 則提供 agentic reasoning architecture。它把 forecasting 拆成 Historical Context Agent、Macro-Reasoning Agent、Micro-Reasoning Agent、Forecast Synthesizer 與 Calibration Agent。Nexus 原文屬於 time-series forecasting framework；在此專案中，它比較適合作為 view-generation layer 的架構參考，後續仍需另外定義 $P$、$Q$ 與 $\Omega$ 的 mapping。
+## 3. Data Flow
 
-三篇論文可以這樣理解：From News to Forecast 處理「哪些新聞值得用」，Nexus 處理「如何對新聞與數值資料做分層 reasoning」，LLM-Enhanced Black-Litterman 處理「如何把 LLM views 放進 Black-Litterman 並產生 portfolio」。
+第一階段資料流分成四個層次。
 
-```text
-From News to Forecast
-    -> news retrieval, filtering, rationality, reflection
+第一層是 universe table。每一檔股票需要 ticker、中文公司名、英文公司名、常見別名與產業分類。Taiwan 50 constituents 是初始範圍；後續必須決定使用 current constituents 還是 historical constituents。
 
-Nexus
-    -> context, macro reasoning, micro reasoning, synthesis, calibration
+第二層是 news matching。新聞標題或內文需要和公司名稱、ticker、別名、集團名稱或常見縮寫對齊。中文新聞會遇到公司簡稱、品牌名、同名詞、半導體供應鏈描述與市場整體新聞等問題，因此 entity matching 的規則應先以可解釋方式記錄。
 
-LLM-Enhanced Black-Litterman
-    -> P, Q, Omega mapping, BL posterior, portfolio optimization
-```
+第三層是 attention indices。對每個日期或週期，先計算 stock-level news counts，再聚合到 sector-level news counts。接著計算 raw Hype Index 與 market-cap-adjusted Hype Index。
 
-## 4. View Generation 的設計
+第四層是 empirical analysis。先做描述統計與圖形，再檢查事件期間、realized volatility，以及後續可能的 returns relation。第一階段不設計 portfolio application。
 
-$Q$ 是 Black-Litterman 的 view vector，也是此專案中 LLM layer 最直接影響 portfolio 的地方。目前可以分成三個層級來思考。
+## 4. Index Construction
 
-第一層是 baseline $Q$。這一層可以先使用 fixed 或 mocked values，目的是確認 BL posterior、optimizer、constraints 與 backtest 能正常運作。
+令 $U_t$ 為時間 $t$ 的 Taiwan 50 universe，$N_{i,t}$ 為股票 $i$ 在時間 $t$ 的新聞數，$MC_{i,t}$ 為市場價值。若 market cap 無法直接取得，可在資料來源允許時用 adjusted close price 乘以 shares outstanding 建立近似值，並在報告中記錄來源與限制。
 
-第二層是 paper-style LLM $Q$，也就是仿照 LLM-Enhanced Black-Litterman，對同一檔資產重複查詢 LLM，然後把 forecasts 平均成 view：
+Stock-level raw Hype Index:
 
 $$
-q_i = \frac{1}{N}\sum_{j=1}^{N} r_{i,j}.
+H_{i,t} = \frac{N_{i,t}}{\sum_{j \in U_t} N_{j,t}}.
 $$
 
-其中 $r_{i,j}$ 是第 $i$ 檔資產第 $j$ 次 LLM forecast。
+Sector-level raw Hype Index:
 
-第三層才是最符合此專案主軸的 news-aware $Q$。這一層會把 selected news、rationality、macro reasoning 與 micro reasoning 整合成 expected return view。仍待比較的設計包括：$Q$ 是否應直接由 LLM 輸出 expected return，或是先建立 time-series baseline forecast，再由 news/event information 產生 adjustment。
+$$
+H_{g,t} = \frac{\sum_{i \in g} N_{i,t}}{\sum_{j \in U_t} N_{j,t}} = \sum_{i \in g} H_{i,t}.
+$$
 
-## 5. 對 $\Omega$ 的疑慮：穩定輸出不等於正確信心
+Market-cap weight:
 
-LLM-Enhanced Black-Litterman 使用 repeated-output variance 建立 $\Omega$。這個方法可以作為 baseline，但它衡量的是 LLM output self-consistency，不一定代表 factual reliability。
+$$
+w_{i,t} = \frac{MC_{i,t}}{\sum_{j \in U_t} MC_{j,t}}.
+$$
 
-如果 LLM 對某個錯誤 view 很穩定，repeated forecasts 的 variance 會很小，$\Omega$ 也會變小。這種情況下，$\Omega$ 反映的是輸出穩定度；view 的真實可靠性還取決於新聞選擇是否完整、事件解讀是否合理，以及下列因素：
+Sector market-cap weight:
 
-- 新聞是否 relevant；
-- 是否有重要 missed news；
-- event direction 是否判斷正確；
-- macro reasoning 與 micro reasoning 是否一致；
-- 過去類似事件的 forecast error 是否偏大。
+$$
+w_{g,t} = \frac{\sum_{i \in g} MC_{i,t}}{\sum_{j \in U_t} MC_{j,t}}.
+$$
 
-因此，$\Omega$ 的來源應分開命名與討論，例如 `repeated_output_variance`、`historical_calibration_error`、`news_selection_quality_signal`、`event_uncertainty_signal` 或 `omega_hybrid_experimental`。在尚未驗證前，這些訊號比較適合被視為不同的 uncertainty sources，而不是被直接混成單一正式公式。
+Capitalization-adjusted Hype Index:
 
-## 6. $P$ 的可能設計
+$$
+A_{i,t} = \frac{H_{i,t}}{w_{i,t}}, \qquad
+A_{g,t} = \frac{H_{g,t}}{w_{g,t}}.
+$$
 
-第一版可以使用 $P = I$，也就是每檔股票各有一個 asset-level absolute view。這和 LLM-Enhanced Black-Litterman 的做法一致，也最容易檢查 BL posterior 與 optimizer 是否正確。
+當 $A_{i,t}$ 或 $A_{g,t}$ 大於 1 時，代表該股票或產業的新聞占比高於其 market-cap weight；小於 1 時，代表新聞占比低於其 economic weight。這是 attention imbalance 的描述性指標，不應直接解讀為投資建議或已驗證的預測訊號。
 
-引入新聞後，$P$ 可能會變得更複雜。例如 asset-level news 仍可使用 one-hot row；sector-level news 可能需要一個 sector basket；macro news 可能同時影響多個 sector；relative view 則可能表達成「Technology sector outperform Energy sector」這類形式。
+後續可加入 rolling mean、rolling change、percentage change 或 z-score：
 
-後續若使用 non-identity $P$，需要清楚記錄 view 是 absolute 還是 relative、對應哪些 assets、row weight 如何設定、$Q$ 的單位與 forecast horizon，以及它是否和 $\pi$、$\Sigma$ 的 scale 一致。
+$$
+Z^{(k)}_{i,t} = \frac{H_{i,t} - \mu^{(k)}_{i,t}}{\sigma^{(k)}_{i,t}},
+$$
 
-## 7. 實作階段
+其中 $\mu^{(k)}_{i,t}$ 與 $\sigma^{(k)}_{i,t}$ 分別是長度 $k$ 的 rolling mean 與 rolling standard deviation。相同形式也可套用在 $A_{i,t}$、$H_{g,t}$ 與 $A_{g,t}$。
 
-實作可以保守推進，但研究主軸仍然是 news-aware view generation。
+## 5. Empirical Analysis Plan
 
-第一階段是建立 BL baseline。這一階段使用 fixed 或 mocked $P$、$Q$、$\Omega$，確認 posterior return、MVO、constraints、rebalancing 與 backtest 設定都能正常運作。
+第一組分析是 raw news attention。它比較不同股票與產業的新聞占比，回答哪些公司或產業最常出現在新聞中，以及 attention 是否集中在少數大型權值股。
 
-第二階段是加入 paper-style LLM views。這一階段仿照 LLM-Enhanced Black-Litterman，用 repeated forecasts 建立 $Q$ 與 $\Omega$，先不加入新聞，以便確認 LLM-to-BL mapping。
+第二組分析是 cap-adjusted attention。它比較新聞占比與 market-cap weight 的落差，回答哪些股票或產業相對於其經濟規模被過度關注或低度關注。
 
-第三階段是建立 deterministic news-view examples。這一階段使用手動整理或 mocked news examples，建立 candidate news、selected news、rationality 與 view output schema。
+第三組分析是 event-study plots。針對台股重大事件、產業事件或公司事件，畫出事件前後的 raw Hype Index、cap-adjusted Hype Index、價格與 realized volatility。這一階段只描述事件對 attention 指標的對應關係，不宣稱因果。
 
-第四階段是加入 news filtering 與 reflection。這一階段借用 From News to Forecast 的設計，把 selected news 轉成 asset-level 或 sector-level views，並用 prediction error 或 missed news 反思 news-selection logic。
+第四組分析是 realized volatility relation。可用 5-day、10-day 或 weekly realized volatility 與 Hype Index 變化做 contemporaneous 與 lagged comparison。這是 Phase 1 後段或 Phase 3 的銜接點。
 
-第五階段視時間加入 Nexus-style macro/micro synthesis。這一階段可比較直接 LLM $Q$ 與 agentic $Q$ 的差異，也可討論 calibration 是否能作為 $\Omega$ 的輔助訊號。
+第五組分析才是 possible returns relation。returns relation 需要更嚴格的時間切分、transaction assumptions 與 multiple-testing control，因此應放在後續階段。
 
-Live news 與 live LLM workflows 適合作為後續延伸，前提是資料、prompt、成本與 reproducibility 都能被清楚控制。
+## 6. Current Phase Boundary
 
-## 8. 報告撰寫角度
+目前第一階段只做 Hype Index replication。Sentiment scores、forecasting tests、Black-Litterman、LLM-assisted views、agentic portfolio systems 與 multi-agent workflows 都在 current phase 之外。
 
-報告撰寫時，應避免把主軸描述成「先做 BL baseline，之後有空再加新聞」。較合理的說法是：新聞 view 是研究主軸，而 baseline 是為了讓後續 news-aware view 有可測試的 Black-Litterman 框架。
+後續若加入 sentiment 或 prediction，應另行定義資料來源、時間切分、target variable 與 validation design。這些後續工作不改變本文件目前的 active architecture。
 
-目前可採用的表述是：此專案先以 Black-Litterman 作為可解釋的 portfolio integration framework，並研究如何將 LLM 從新聞與事件中形成的 views 轉成 $P$、$Q$、$\Omega$。初期會先建立 BL baseline 與 mocked views，確保 posterior return 與 optimizer 正確；接著才加入 news filtering、event rationale、macro/micro reasoning 與 calibration。
+## 7. Open Questions
 
-## 9. 目前仍待釐清的問題
-
-1. 如何從 selected news 和 rationality 生成 asset-level 或 sector-level $Q$？
-2. $Q$ 應該是直接 expected return，還是 time-series forecast 加上 news adjustment？
-3. sector-level 或 macro-level news 是否需要 non-identity $P$？
-4. $\Omega$ 應如何同時反映 repeated-output uncertainty、news-selection quality 與 historical calibration error？
-5. From News to Forecast 的 reflection 應只更新 news-selection logic，還是也能影響 uncertainty？
-6. Nexus-style macro/micro synthesis 是否值得在課程專案中實作，還是先作為 report/design extension？
-7. 如何避免 look-ahead bias，特別是 publication time、event time、rebalance date 的關係？
-8. 如何在報告中區分 paper method、project adaptation、future experiment？
+1. Taiwan 50 應使用 current constituents，還是應取得 historical constituents 以降低 survivorship bias？
+2. 中文公司名、英文名、簡稱、品牌名與 ticker aliases 如何建立可重現的 matching table？
+3. 同一篇新聞提到多家公司時，應每家公司各記一次，還是按文章權重分攤？
+4. 重複新聞、轉載新聞、快訊更新與同源新聞應如何去重？
+5. 新聞來源是否偏向特定產業、大型公司或熱門題材？
+6. 產業分類應使用交易所分類、GICS 類似分類，還是手動建立的研究分類？
+7. market cap 資料若缺少 shares outstanding 或調整因子，應如何記錄近似方法？
+8. 實證圖表應先用 daily frequency 還是 weekly frequency？
+9. 後續若加入 sentiment 或 returns prediction，如何避免把未來新聞或事後事件標籤放入特徵？
