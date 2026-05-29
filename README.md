@@ -9,12 +9,13 @@ The active first-phase project direction is a Taiwan-market replication and adap
 - Course assignments
 - Paper reading notes
 - Taiwan Hype Index architecture design notes
+- Taiwan Hype Index data-source and universe plan
 - Minimal Python project setup
 
 ## Repository layout
 
 - `AGENTS.md`: repository-wide instructions for Codex and AI-assisted contributors
-- `docs/`: paper summaries, formulas, architecture alternatives, and prompt design notes
+- `docs/`: paper summaries, formulas, architecture notes, and Taiwan Hype Index data plans
 - `assignments/`: course assignments
 - `report/`: progress logs, report drafts, curated results, and figures
 - `data/`: local data area; raw and processed data are not committed by default

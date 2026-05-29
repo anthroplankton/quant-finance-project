@@ -44,6 +44,8 @@ News counts 應綁定 publication date，並記錄 news source。同一篇文章
 
 Market capitalization 需要和 news data 對齊到相同頻率。若使用 close price 乘以 shares outstanding，報告中應記錄 adjusted-price assumptions、corporate action handling 與 missing shares data 的處理方式。
 
+Data-source、universe schema、alias matching、news table、market data table、counting rule 與 missing-data rule 的詳細設計，放在 `docs/taiwan_hype_index_data_plan.md`。
+
 ## Core Formulas
 
 令 $U_t$ 為時間 $t$ 的 Taiwan 50 universe，$N_{i,t}$ 為股票 $i$ 在時間 $t$ 的 matched news count。時間單位可以是 daily 或 weekly，但同一組分析內必須一致。

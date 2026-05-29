@@ -17,6 +17,8 @@ news/headlines
 
 這個流程的核心是把非結構化新聞轉成可檢查的 attention time series。第一階段的架構只涵蓋 Hype Index replication：新聞來源、公司名稱比對、ticker alias、產業分類、market cap 權重與時間對齊方式都需要能被重現。
 
+Data-source 與 universe definitions 的詳細設計記錄在 `docs/taiwan_hype_index_data_plan.md`。
+
 ## 2. Research Question
 
 新的第一階段問題可以表述為：

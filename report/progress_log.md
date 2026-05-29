@@ -2,6 +2,13 @@
 
 ## 2026-05-29
 
+### Data-source and universe design
+
+* Added a Phase 1 data-source and universe plan for Taiwan Hype Index replication.
+* Clarified that Phase 1 uses current Taiwan 50 constituents as a fixed large-cap universe for descriptive replication.
+* Documented planned schemas for the universe table, news table, and market data table, plus alias matching, counting rules, frequency choice, and missing-data rules.
+* This was a documentation-only design step. No data was downloaded, no Python code was implemented, and no empirical results were produced.
+
 ### Project pivot to Taiwan Hype Index
 
 * Instructor suggested moving the project toward market sentiment / market attention.
