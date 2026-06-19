@@ -2,7 +2,7 @@
 
 This repository is for a Quantitative Finance course project.
 
-The active first-phase project direction is a Taiwan-market replication and adaptation of **The Hype Index: an NLP-driven Measure of Market News Attention** (arXiv:2506.06329). The initial goal is to construct raw and market-cap-adjusted news-attention measures for a Taiwan 50 large-cap universe.
+The active first-phase project direction is a Taiwan-market replication and adaptation of **The Hype Index: an NLP-driven Measure of Market News Attention** (arXiv:2506.06329). The report title may remain Taiwan 50 Hype Index, while the first implementation operationalizes the universe as a TEJ-based fixed top-50 market-cap listed-stock universe selected as of 2025-03-31.
 
 ## Current stage
 
@@ -24,7 +24,7 @@ The active first-phase project direction is a Taiwan-market replication and adap
 
 The project direction is:
 
-1. a Taiwan 50 universe and documented data-source plan;
+1. a TEJ-based fixed top-50 market-cap universe and documented data-source plan;
 2. stock and sector news-count Hype Index construction;
 3. market-cap-adjusted Hype Index construction;
 4. empirical analysis against events and realized volatility;

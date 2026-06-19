@@ -1,7 +1,7 @@
 [project]
 name = "quant-finance-project"
 version = "0.1.0"
-description = "Quantitative Finance course project: Black-Litterman portfolio optimization with LLM-assisted news views."
+description = "Quantitative Finance course project: Taiwan Hype Index replication using news-attention and TEJ-based top-50 market data."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

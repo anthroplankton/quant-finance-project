@@ -51,6 +51,7 @@ outputs/
 runs/
 
 # Data
+# TEJPro raw exports and regenerated TEJ-derived outputs stay local here.
 data/raw/
 data/processed/
 data/cache/

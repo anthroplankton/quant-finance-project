@@ -1,5 +1,20 @@
 # Progress Log
 
+## 2026-06-19
+
+### TEJPro data workflow update
+
+* Shifted the first implementation plan to TEJPro manual exports only.
+* Recorded the Phase 1 universe as a TEJ-based fixed top-50 market-cap listed-stock universe selected with TEJ market capitalization as of 2025-03-31.
+* Recorded the market panel period as 2025-04-01 to 2026-03-31.
+* Recorded `data/raw/tej/tej_company_basic_tse_current_minimal_20260615.csv` as the TEJ Company DB / 基本資料 export used for company metadata, ticker-name mapping, English / Chinese names, and industry classification.
+* Recorded `data/raw/tej/tej_top50_daily_market_panel_20250401_20260331.csv` as the TEJ 股價資料庫 / 未調整股價(日) export used for daily close, shares outstanding, market cap, volume, and traded value.
+* The Company DB basic data export passed format checks locally.
+* The top-50 daily market panel export passed completeness checks locally.
+* The raw TEJPro files are stored under `data/raw/tej/` and remain ignored by Git.
+* TEJ raw data and TEJ-derived processed outputs should stay local; processed outputs should be regenerated under `data/processed/tej/` when the cleaning pipeline is implemented.
+* No news data has been collected yet, and no Hype Index result has been produced yet.
+
 ## 2026-05-29
 
 ### Data-source and universe design

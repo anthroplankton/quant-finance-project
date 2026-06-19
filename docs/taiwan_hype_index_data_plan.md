@@ -8,9 +8,9 @@
 
 ## Current Phase 1 Scope
 
-Phase 1 使用 **current Taiwan 50 constituents** 作為固定 large-cap universe，目標是做 descriptive Hype Index replication。這個選擇讓第一版可以專注在 news counts、company matching、raw Hype Index 與 market-cap-adjusted Hype Index，而不是先處理完整 historical index membership。
+Phase 1 的報告題目可以維持 **Taiwan 50 Hype Index**，但第一版 implementation 會把 universe operationalize 成 **TEJ-based fixed top-50 market-cap listed-stock universe**。因為目前 TEJPro UI 沒有提供可直接取得、可在本專案中檢查的 official Taiwan 50 constituent flag，Phase 1 先使用 TEJ market capitalization 在 **2025-03-31** 的截面選出上市普通股前 50 名，作為固定 large-cap universe。
 
-Historical constituent reconstruction 先延後。原因是 Phase 1 不主張 predictive result、portfolio result 或 backtest result；使用 current constituents 作為固定 universe 足以支撐 descriptive replication。若後續進入 predictive tests 或 returns analysis，historical constituents 會成為重要改進，以降低 survivorship bias。
+這個 universe 是 Taiwan 50 report framing 下的 TEJ-based operational proxy，不應寫成官方 Taiwan 50 指數成分股清單。Historical constituent reconstruction 先延後。原因是 Phase 1 不主張 predictive result、portfolio result 或 backtest result；使用固定 large-cap universe 足以支撐 descriptive replication。若後續進入 predictive tests 或 returns analysis，official / historical constituents 會成為重要改進，以降低 survivorship bias 與 index-membership mismatch。
 
 Phase 1 應產出：
 
@@ -25,21 +25,34 @@ Phase 1 不包含 sentiment、LLM、prediction test 或 portfolio application。
 
 ## Universe Source Plan
 
-Universe 的 primary source 應優先使用 official 或 index-provider 的 Taiwan 50 constituent / constituent-weight source。例如官方交易所、index provider、或可追溯到 index provider 的 constituent / weight disclosure。若使用 ETF holdings 作為輔助來源，報告中應清楚標示它是 proxy source，而不是 index methodology 本身。
+Universe 的 first implementation source 是 local TEJPro manual exports。若未來取得 official 或 index-provider Taiwan 50 constituent / constituent-weight source，應另行記錄 source、as-of date、methodology 差異，並決定是否替換或對照目前的 TEJ-based top-50 proxy。若使用 ETF holdings 作為輔助來源，報告中應清楚標示它是 proxy source，而不是 index methodology 本身。
 
 Universe source record 應至少保存下列資訊：
 
 - access date；
 - constituent selection date；
 - source name；
-- source URL；
+- source interface or file path；
 - ticker；
 - official Chinese company name；
 - official English company name；
-- constituent weight if available；
-- notes on whether the source is official, index-provider, ETF disclosure, or manually reconciled.
+- market capitalization used for top-50 selection if available；
+- notes on whether the source is official, index-provider, TEJ-based proxy, ETF disclosure, or manually reconciled.
 
-如果 Phase 1 使用 current constituents，文件和結果都應標示 as-of date。Historical constituents 是後續 improvement；若未來進行 predictive tests，應補上 historical constituent table 或明確描述無法取得時的限制。
+目前 Phase 1 應標示 constituent selection date 為 **2025-03-31**。Market panel period 是 **2025-04-01 to 2026-03-31**。Historical constituents 是後續 improvement；若未來進行 predictive tests，應補上 historical constituent table 或明確描述無法取得時的限制。
+
+## Local TEJPro Raw Files
+
+TEJPro data are licensed local files and must stay outside Git. The current workflow uses two user-provided manual exports under `data/raw/tej/`:
+
+| Local file | TEJ source | Role in Phase 1 |
+|---|---|---|
+| `data/raw/tej/tej_company_basic_tse_current_minimal_20260615.csv` | TEJ Company DB / 基本資料 | Company metadata, ticker-name mapping, Chinese and English company names, and industry classification. It is not the source of the top-50 selection itself. |
+| `data/raw/tej/tej_top50_daily_market_panel_20250401_20260331.csv` | TEJ 股價資料庫 / 未調整股價(日) | Daily close, shares outstanding, market capitalization, volume, and traded value for the fixed top-50 universe selected by TEJ market capitalization as of 2025-03-31. |
+
+The raw files under `data/raw/tej/` are local-only and ignored by Git. TEJ-derived processed outputs should be regenerated locally under `data/processed/tej/` and should also remain ignored. Any exception would require a separate explicit approval and license / redistribution review; the current Phase 1 documentation update does not approve committing raw TEJ files or TEJ-derived processed files.
+
+No news data has been collected yet, and no Hype Index has been computed yet.
 
 ## Universe Table Schema
 
@@ -122,7 +135,9 @@ The default rule should be revisited if sector-wide articles dominate the counts
 
 ## Market Cap and Price Data Source Plan
 
-Capitalization-adjusted Hype Index needs market-cap weights. The preferred input is direct market capitalization for each stock at the chosen frequency. If direct market capitalization is not available, the fallback is:
+Capitalization-adjusted Hype Index needs market-cap weights. For the current first implementation, TEJ 股價資料庫 / 未調整股價(日) is the planned market-data source for daily close, shares outstanding, market capitalization, volume, and traded value. The top-50 universe is selected using TEJ market capitalization as of 2025-03-31, and the daily market panel covers 2025-04-01 to 2026-03-31.
+
+The preferred input is direct market capitalization for each stock at the chosen frequency. If direct market capitalization is not available or fails validation, the fallback is:
 
 $$
 market\ cap = close\ price \times shares\ outstanding.
@@ -130,7 +145,7 @@ $$
 
 The project should record:
 
-- source name;
+- source name and local file path;
 - access date;
 - data frequency;
 - whether prices are close or adjusted close;
@@ -140,7 +155,7 @@ The project should record:
 - missing-data handling;
 - whether market cap is direct or reconstructed.
 
-No market data has been downloaded yet. Any later implementation should document the source and access date before producing capitalization-adjusted Hype Index.
+The current market data are local TEJPro manual exports, not committed project artifacts. Processed market-data outputs should be regenerated locally under `data/processed/tej/` and must not be treated as report results until validation and index construction code are implemented.
 
 ## Market Data Table Schema
 
@@ -180,13 +195,13 @@ Duplicate news: duplicate, syndicated, or reposted articles should be grouped wi
 
 ## First Implementation Decision
 
-The first implementation should produce the following design-backed outputs only:
+The first implementation should produce the following design-backed outputs locally:
 
-- fixed Taiwan 50 universe table;
+- TEJ-based fixed top-50 market-cap universe table as of 2025-03-31;
 - documented alias table;
 - sample news-count pipeline design;
 - raw Hype Index;
 - capitalization-adjusted Hype Index;
 - descriptive plots only.
 
-The first implementation should not include sentiment, LLM calls, prediction tests, portfolio application, live trading logic, or claims about empirical predictive performance.
+The first implementation should not include sentiment, LLM calls, prediction tests, portfolio application, live trading logic, or claims about empirical predictive performance. At the current documentation stage, no news data has been collected and no Hype Index result has been produced.
