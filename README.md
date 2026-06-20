@@ -11,6 +11,8 @@ The active first-phase project direction is a Taiwan-market replication and adap
 - Taiwan Hype Index architecture design notes
 - Taiwan Hype Index data-source and universe plan
 - Taiwan Hype Index news-source feasibility audit
+- Taiwan Hype Index news-acquisition feasibility sprint
+- GDELT metadata prototype plan
 - Minimal Python project setup
 
 ## Repository layout
@@ -30,6 +32,26 @@ uv run python scripts/build_tej_market_data.py
 ```
 
 The script writes cleaned metadata, the daily market panel, the fixed top-50 universe, weekly market-cap weights, and a date-labeled validation summary under `data/processed/tej/`. These files remain local-only and are not Hype Index or news-count results.
+
+## Optional GDELT metadata dry run
+
+The GDELT prototype is a metadata feasibility step only. It follows the zero-cost route: no Google Cloud, BigQuery, paid API, billing setup, or cloud credentials are required. The dry run prints candidate raw GDELT file URLs and local ignored output paths without downloading files:
+
+```bash
+uv run python scripts/probe_gdelt_metadata.py --dry-run --company-alias 台積電 --ticker 2330 --start-date 2025-04-01 --end-date 2025-04-02
+```
+
+Any later live GDELT outputs must remain local under ignored `data/raw/news/gdelt/` or `data/processed/news/gdelt/` paths.
+
+The current source-discovery result is documented in `docs/taiwan_hype_index_news_acquisition_feasibility.md`: GDELT raw GKG direct download is the recommended zero-cost route for the next bounded metadata prototype; BigQuery remains rejected for this project.
+
+For a bounded streaming feasibility probe that does not keep raw GDELT files by default:
+
+```bash
+uv run python scripts/probe_gdelt_raw_stream.py --start-date 2025-04-01 --end-date 2025-04-01 --max-files 8 --max-download-mb 50
+```
+
+Add `--execute` only for an explicit live probe.
 
 ## Planned direction
 
