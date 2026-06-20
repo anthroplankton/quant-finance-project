@@ -20,6 +20,16 @@ The active first-phase project direction is a Taiwan-market replication and adap
 - `report/`: progress logs, report drafts, curated results, and figures
 - `data/`: local data area; raw and processed data are not committed by default
 
+## Local TEJ cleaning
+
+When the licensed TEJPro manual exports are present under `data/raw/tej/`, regenerate the ignored processed market-data files with:
+
+```bash
+uv run python scripts/build_tej_market_data.py
+```
+
+The script writes cleaned metadata, the daily market panel, the fixed top-50 universe, weekly market-cap weights, and a date-labeled validation summary under `data/processed/tej/`. These files remain local-only and are not Hype Index or news-count results.
+
 ## Planned direction
 
 The project direction is:
