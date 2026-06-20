@@ -1,5 +1,16 @@
 # Progress Log
 
+## 2026-06-20
+
+### Goal 2A news-source feasibility audit
+
+* Added a web-researched feasibility audit for candidate Taiwan Hype Index news sources.
+* Identified GDELT 2.0 BigQuery / GKG metadata as the primary candidate for the next small retrospective prototype.
+* Recorded GDELT DOC API as an exploratory backup because official documentation is useful but a tiny local query hit HTTP 429.
+* Recorded CNA RSS / public pages, Economic Daily News, MoneyDJ, and Anue / Cnyes as backup or manual-validation candidates, pending terms-of-use and stable access-method review.
+* Recorded MOPS / public company announcements as event-context material only, not as the main Hype Index news-attention source.
+* No production news data was collected, no news-count pipeline was implemented, and no Hype Index result was produced.
+
 ## 2026-06-19
 
 ### TEJPro data workflow update

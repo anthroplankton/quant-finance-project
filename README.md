@@ -10,6 +10,7 @@ The active first-phase project direction is a Taiwan-market replication and adap
 - Paper reading notes
 - Taiwan Hype Index architecture design notes
 - Taiwan Hype Index data-source and universe plan
+- Taiwan Hype Index news-source feasibility audit
 - Minimal Python project setup
 
 ## Repository layout

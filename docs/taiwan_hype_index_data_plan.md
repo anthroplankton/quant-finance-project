@@ -85,6 +85,8 @@ Phase 1 should prefer conservative matching rules. It is better to miss some unc
 
 The news source has not been finalized. Candidate source types are listed here so the project can compare coverage and reproducibility before implementation.
 
+A separate feasibility audit has been added at `docs/taiwan_hype_index_news_source_audit.md`. That audit is the current reference for verified, partially verified, rejected, and event-context-only source candidates. This data plan keeps only the high-level design role of news sources.
+
 **GDELT** is an open-data candidate. Its advantages are scale, reproducibility, public availability, and global news coverage. Its risks are entity-matching noise, uneven Chinese-language coverage, duplicate or syndicated news, and possible mismatch between global news attention and Taiwan local-market attention.
 
 **Selected Taiwanese finance news RSS/web sources** are possible local-market candidates. They may better capture Taiwan-specific market events, company news, and Chinese-language naming conventions. Their risks are source bias, coverage limits, duplicate reposts, changing website structure, RSS availability, copyright / terms-of-use constraints, and lower reproducibility if historical archives are incomplete.
