@@ -1,5 +1,19 @@
 # Progress Log
 
+## 2026-06-22
+
+### First implementation window revised to 8 weeks
+
+* Revised the first implementation GDELT / Hype Index pilot from the previously planned 12 weeks to an 8-week window: 2025-04-05 to 2025-05-30 inclusive.
+* The selected window has exactly 56 calendar days and 8 full Saturday-to-Friday weekly bins, so the fixed top-50 stock-week panel should contain 50 × 8 = 400 rows before any missing-data exclusions.
+* Selected only the two completed 4-week GDELT chunks: 2025-04-05 to 2025-05-02 and 2025-05-03 to 2025-05-30.
+* Chunk 1 summary: completed=true, candidate files=2,688, files processed=2,686, files missing=2, files failed=0, matched rows=1,134, unique URLs=1,097.
+* Chunk 2 summary: completed=true, candidate files=2,688, files processed=2,686, files missing=2, files failed=0, matched rows=1,031, unique URLs=996.
+* Combined selected 8-week evidence: candidate files=5,376, files processed=5,372, files missing=4, files failed=0, missing-file ratio about 0.074%, matched rows=2,165, and chunk-summary unique URLs=2,093.
+* The previously planned 2025-05-31 to 2025-06-27 chunk is excluded from the first implementation because GDELT raw GKG files are almost continuously missing after `20250614180000` through `20250627234500`, with additional earlier missing files and a short missing segment around `20250612181500` to `20250612201500`.
+* The 8-week pilot remains a bounded descriptive first implementation, not a full-year replication. Avoid strong time-series inference from only 8 weekly observations.
+* GDELT outputs remain local-only under ignored `data/processed/news/` paths. No live GDELT download was run for this documentation update, no notebook was created, and no Hype Index result has been computed yet.
+
 ## 2026-06-21
 
 ### GDELT expanded-reviewed alias policy hardening
@@ -15,20 +29,20 @@
 * Restricted the GDELT raw streaming probe so alias matching uses only GKG content / entity / name fields such as themes, locations, persons, organizations, and `AllNames`.
 * URL and source metadata fields such as `DocumentIdentifier`, `SourceCommonName`, source domains, record IDs, dates, and source collection identifiers are not used for company alias matching.
 * Verified the existing HTTP 404 missing-file behavior with synthetic tests: missing raw GKG archive files are skipped without retrying, recorded in `files_missing` / `missing_files`, and tolerated only within the configured missing-file threshold.
-* Corrected the 12-week pilot-window rationale: the window starts at the first full Saturday-to-Friday weekly bin after the TEJ market-panel start and still includes calendar news days during the Apr 5-6 holiday/weekend period.
+* Corrected the pilot-window rationale: the window starts at the first full Saturday-to-Friday weekly bin after the TEJ market-panel start and still includes calendar news days during the Apr 5-6 holiday/weekend period.
 * This update did not run a live GDELT download, did not create a notebook, and did not compute a Hype Index result.
 
-### 12-week pilot window decision
+### Superseded pilot window decision
 
-* Shortened the first implementation research window from the full 2025-04-01 to 2026-03-31 market panel to a 12-week pilot news window: 2025-04-05 to 2025-06-27 inclusive.
-* Defined weekly news bins as Saturday-to-Friday, ending on Fridays, with exactly 84 calendar days and 12 full 7-day weeks.
-* Recorded the chunked GDELT acquisition plan as three 28-day windows: 2025-04-05 to 2025-05-02, 2025-05-03 to 2025-05-30, and 2025-05-31 to 2025-06-27.
+* Initial planning shortened the first implementation research window from the full 2025-04-01 to 2026-03-31 market panel to a bounded pilot news window. This was later revised on 2026-06-22 to the active 8-week window: 2025-04-05 to 2025-05-30 inclusive.
+* Defined weekly news bins as Saturday-to-Friday, ending on Fridays; the active window has exactly 56 calendar days and 8 full 7-day weeks.
+* The active chunked GDELT acquisition plan uses two 28-day windows: 2025-04-05 to 2025-05-02 and 2025-05-03 to 2025-05-30.
 * Market-cap weights should use the last available TEJ trading day within each weekly bin rather than assuming Friday is always a trading day.
-* This is a documentation-only decision update. No 12-week GDELT data has been collected, no notebook was created, and no Hype Index result has been computed.
+* This is a documentation-only decision update. No notebook was created, and no Hype Index result has been computed.
 
 ### GDELT missing archive-file handling
 
-* During the 12-week GDELT acquisition attempt, chunk 2 initially hit a missing raw archive file at `20250503003000.gkg.csv.zip`.
+* During the bounded GDELT acquisition attempt, chunk 2 initially hit a missing raw archive file at `20250503003000.gkg.csv.zip`.
 * Updated the streaming probe so HTTP 404 raw GKG files are recorded as missing source files, skipped without retrying, and summarized separately from transient failures.
 * Added a conservative missing-file threshold so occasional archive gaps can be tolerated while broader source-availability problems still stop the probe with `completed=false`.
 * This update did not run a live GDELT download, did not create a notebook, and did not compute a Hype Index result.

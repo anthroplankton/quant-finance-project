@@ -143,27 +143,39 @@ It is not yet a production news-count pipeline. The next step should still be a 
 
 ## First Implementation Pilot Window
 
-The first implementation should not immediately scan the full 2025-04-01 to 2026-03-31 market panel. The chosen news and Hype Index pilot window is a 12-week calendar window:
+The first implementation should not immediately scan the full 2025-04-01 to 2026-03-31 market panel. The chosen news and Hype Index pilot window is an 8-week calendar window:
 
-- news calendar window: 2025-04-05 to 2025-06-27 inclusive;
+- news calendar window: 2025-04-05 to 2025-05-30 inclusive;
 - weekly bins: Saturday-to-Friday, ending on Fridays;
-- length: exactly 84 calendar days, or 12 full 7-day weeks;
+- length: exactly 56 calendar days, or 8 full 7-day weeks;
 - first week: 2025-04-05 to 2025-04-11;
-- last week: 2025-06-21 to 2025-06-27.
+- last week: 2025-05-24 to 2025-05-30;
+- expected fixed-universe stock-week panel size: 50 × 8 = 400 rows.
 
-The pilot window starts at the first complete Saturday-to-Friday weekly bin after the 2025-04-01 TEJ market-panel start. It does not exclude the 2025-04-03 to 2025-04-06 holiday/weekend period entirely; news is collected on calendar days, including weekends and holidays. It avoids partial weeks, includes important April 2025 Taiwan market/news events, and keeps raw GDELT transfer volume manageable for the first implementation. It still gives 12 weekly observations, enough for a first descriptive Hype Index pilot.
+The pilot window starts at the first complete Saturday-to-Friday weekly bin after the 2025-04-01 TEJ market-panel start. It does not exclude the 2025-04-03 to 2025-04-06 holiday/weekend period entirely; news is collected on calendar days, including weekends and holidays. It avoids partial weeks, includes important April 2025 Taiwan market/news events, and keeps raw GDELT transfer volume manageable for the first implementation. It gives 8 weekly observations, which are enough for bounded descriptive Hype Index construction but not enough for strong time-series inference.
 
 Market-cap weights should continue to come from the TEJ-derived weekly market-cap weights built from the full TEJ market panel. For each Saturday-to-Friday news week, the market-cap weight convention is the last available TEJ trading day within that week. Do not assume each Friday is a trading day; if the Friday is a market holiday or otherwise absent from TEJ trading data, use the last available trading day in the same week.
 
-The 12-week GDELT run should be split into three 4-week chunks:
+The 8-week GDELT pilot uses the two completed 4-week chunks:
 
 | Chunk | Calendar window | Days | Expected GDELT files |
 |---|---|---:|---:|
 | 1 | 2025-04-05 to 2025-05-02 | 28 | 2,688 |
 | 2 | 2025-05-03 to 2025-05-30 | 28 | 2,688 |
-| 3 | 2025-05-31 to 2025-06-27 | 28 | 2,688 |
 
 Each chunk fits the bounded month-scale `--max-files` cap. The full-year run remains inappropriate for the first implementation because it would require about 35,040 raw GKG files and a large total network transfer before alias precision, duplicate handling, and weekly aggregation are fully reviewed.
+
+The previously planned 2025-05-31 to 2025-06-27 chunk is not selected for the first implementation. It encountered a severe GDELT raw GKG archive availability problem: early scattered missing files included `20250424213000`, `20250429110000`, `20250503003000`, and `20250506134500`; a short missing segment appeared around `20250612181500` to `20250612201500`; and the major block after `20250614180000` through `20250627234500` was almost continuously missing. This is documented as a data-source limitation. It is the reason the first implementation window is revised to 8 weeks rather than 12 weeks.
+
+Completed local probe summaries for the selected two chunks are:
+
+| Window | Completed | Candidate files | Files processed | Files missing | Files failed | Matched rows | Unique URLs |
+|---|---|---:|---:|---:|---:|---:|---:|
+| 2025-04-05 to 2025-05-02 | true | 2,688 | 2,686 | 2 | 0 | 1,134 | 1,097 |
+| 2025-05-03 to 2025-05-30 | true | 2,688 | 2,686 | 2 | 0 | 1,031 | 996 |
+| Combined selected pilot | true | 5,376 | 5,372 | 4 | 0 | 2,165 | 2,093 |
+
+The combined missing-file ratio is about 0.074%. The local summaries did not show a full-day or full-week zero-news failure. The unique URL count in the combined row is the sum of chunk-summary unique URLs; any cross-chunk deduplication should be handled later in the Hype Index construction step. These outputs remain local-only under ignored `data/processed/news/` paths and should not be committed.
 
 Regenerate the local alias allowlist first:
 
@@ -182,7 +194,7 @@ uv run python scripts/probe_gdelt_raw_stream.py \
   --max-files 2688 \
   --max-download-mb 20000 \
   --disk-limit-gb 5 \
-  --output-dir data/processed/news/gdelt_pilot_12w/chunk_20250405_20250502
+  --output-dir data/processed/news/gdelt_pilot_8w/chunk_20250405_20250502
 
 uv run python scripts/probe_gdelt_raw_stream.py \
   --execute \
@@ -192,17 +204,7 @@ uv run python scripts/probe_gdelt_raw_stream.py \
   --max-files 2688 \
   --max-download-mb 20000 \
   --disk-limit-gb 5 \
-  --output-dir data/processed/news/gdelt_pilot_12w/chunk_20250503_20250530
-
-uv run python scripts/probe_gdelt_raw_stream.py \
-  --execute \
-  --start-date 2025-05-31 \
-  --end-date 2025-06-27 \
-  --aliases-file data/processed/news/aliases/top50_alias_allowlist_gdelt_expanded_reviewed.csv \
-  --max-files 2688 \
-  --max-download-mb 20000 \
-  --disk-limit-gb 5 \
-  --output-dir data/processed/news/gdelt_pilot_12w/chunk_20250531_20250627
+  --output-dir data/processed/news/gdelt_pilot_8w/chunk_20250503_20250530
 ```
 
 All GDELT outputs from these commands remain local-only under ignored `data/processed/news/` paths. They should not be committed.

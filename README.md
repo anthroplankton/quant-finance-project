@@ -59,7 +59,7 @@ Any later live GDELT outputs must remain local under ignored `data/raw/news/gdel
 
 The current source-discovery result is documented in `docs/taiwan_hype_index_news_acquisition_feasibility.md`: GDELT raw GKG direct download is the recommended zero-cost route for the next bounded metadata prototype; BigQuery remains rejected for this project.
 
-The first implementation uses a 12-week pilot news window, 2025-04-05 to 2025-06-27, with Saturday-to-Friday weekly bins. The planned GDELT acquisition is split into three 4-week chunks; see `docs/taiwan_hype_index_news_acquisition_feasibility.md` for the copyable chunk commands and local-only output paths.
+The first implementation uses an 8-week pilot news window, 2025-04-05 to 2025-05-30, with Saturday-to-Friday weekly bins. The selected GDELT acquisition uses two completed 4-week chunks; the previously planned third chunk is excluded because of a sustained missing raw GKG archive block. See `docs/taiwan_hype_index_news_acquisition_feasibility.md` for the selected chunk commands and local-only output paths.
 
 For a bounded streaming feasibility probe that does not keep raw GDELT files by default:
 
