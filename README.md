@@ -33,6 +33,20 @@ uv run python scripts/build_tej_market_data.py
 
 The script writes cleaned metadata, the daily market panel, the fixed top-50 universe, weekly market-cap weights, and a date-labeled validation summary under `data/processed/tej/`. These files remain local-only and are not Hype Index or news-count results.
 
+Build the local-only top-50 alias review tables after TEJ processed outputs exist:
+
+```bash
+uv run python scripts/build_top50_alias_table.py
+```
+
+For the current GDELT raw GKG probe route, generate the expanded-reviewed allowlist:
+
+```bash
+uv run python scripts/build_top50_alias_table.py --profile expanded_reviewed
+```
+
+The alias tables are TEJ-derived and are written under ignored `data/processed/news/aliases/`. Pure ticker aliases and uncurated short aliases are disabled by default for GDELT matching.
+
 ## Optional GDELT metadata dry run
 
 The GDELT prototype is a metadata feasibility step only. It follows the zero-cost route: no Google Cloud, BigQuery, paid API, billing setup, or cloud credentials are required. The dry run prints candidate raw GDELT file URLs and local ignored output paths without downloading files:

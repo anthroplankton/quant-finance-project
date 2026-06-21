@@ -196,6 +196,8 @@ Recommended escalation sequence:
 4. If the 1-week probe is manageable, run a 1-month probe.
 5. Do not attempt full-year collection until the 1-day, 1-week, and 1-month summaries are reviewed.
 
+The CLI hard cap allows up to 3,500 candidate GKG files, enough for a 30-day month-scale probe at 96 files per day. A full-window run of roughly 35,040 files is intentionally rejected by this cap. Live execution still requires explicit `--execute`, remains bounded by `--max-download-mb` for network transfer and `--disk-limit-gb` for local probe storage, and deletes raw zip files unless `--keep-raw` is selected. If the local storage budget would be exceeded during a raw download, the probe stops with `completed=false` and records `disk_limit_gb_exceeded` in the summary.
+
 The probe writes:
 
 - `probe_summary.json`;
@@ -209,6 +211,46 @@ Accounting convention:
 - `files_downloaded` is retained only as a compatibility alias for `files_processed`; it counts files only after download, zip opening, and row parsing all succeed.
 - `compressed_bytes_downloaded` is retained only as a compatibility alias for `compressed_bytes_processed_successful`.
 - `compressed_bytes_processed_successful` is used for the clean-input full-window size estimate.
-- `compressed_bytes_transferred_total` records actual network transfer, including failed or retried attempts.
+- `compressed_bytes_transferred_total` records actual network transfer, including failed partial downloads and retried attempts.
 - `download_attempts` and `retry_count` make transient partial-file or corrupt-zip retries auditable.
 - `failed_files` is a bounded error list for URLs that fail after all retries.
+
+## Top-50 Alias Table Workflow
+
+Before scaling from the three-company GDELT probe to the full TEJ-based top-50 universe, the project should build and review a local alias table. Alias quality is a data-control step: broad Chinese short names, group names, and generic English short names can create false positives in raw GKG matching.
+
+The local alias generator is `scripts/build_top50_alias_table.py`. It reads TEJ-derived processed outputs:
+
+- `data/processed/tej/company_metadata.csv`;
+- `data/processed/tej/top50_universe_20250331.csv`.
+
+Those inputs and generated alias outputs are local-only and ignored by Git. If the TEJ processed inputs are missing, regenerate them first:
+
+```bash
+uv run python scripts/build_tej_market_data.py
+```
+
+Then build the alias candidates:
+
+```bash
+uv run python scripts/build_top50_alias_table.py
+```
+
+For the current GDELT route, also generate the expanded-reviewed allowlist:
+
+```bash
+uv run python scripts/build_top50_alias_table.py --profile expanded_reviewed
+```
+
+The alias script writes:
+
+- `data/processed/news/aliases/top50_alias_candidates.csv`;
+- `data/processed/news/aliases/top50_alias_review.csv`;
+- `data/processed/news/aliases/alias_summary.json`;
+- `data/processed/news/aliases/top50_alias_allowlist_gdelt_expanded_reviewed.csv` when `--profile expanded_reviewed` is selected.
+
+The generated schema includes ticker, stock ID, alias text, alias type, language, source column, ambiguity flag, matching flag, review reason, profile, and notes. The GDELT expanded-reviewed policy disables pure ticker aliases by default because numeric aliases such as `2330` and `2454` can match unrelated numbers in raw GKG rows. Official Chinese and English full names are generally enabled for matching.
+
+The GDELT high-risk short-name policy keeps `統一`, `長榮`, `台塑`, `國泰`, `富邦`, `第一`, `合庫`, and `台新` disabled unless explicitly overridden in a later reviewed table. The expanded-reviewed policy enables short or brand aliases only when they are explicitly curated. The current curated Chinese list includes `鴻海`, `聯電`, `華碩`, `廣達`, `瑞昱`, `智邦`, `緯創`, `緯穎`, `萬海`, `遠傳`, `和碩`, `聯詠`, `陽明`, `彰銀`, and `國巨`; the current curated English / brand list includes `TSMC`, `MediaTek`, `Hon Hai`, `Foxconn`, and `Yageo`. Unlisted short aliases, including broad English words such as `DELTA`, remain disabled and are marked for review. The script also normalizes TEJ display marks, for example using `國巨` for a source value such as `國巨*`, while preserving the source column and notes for review.
+
+The GDELT streaming probe can read the expanded-reviewed CSV and will use only rows where `use_for_matching` is true.

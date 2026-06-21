@@ -1,11 +1,75 @@
 # Progress Log
 
+## 2026-06-21
+
+### Goal 2F-Review GDELT expanded-reviewed alias allowlist
+
+* Extended the local alias workflow so it can write a GDELT-specific `expanded_reviewed` allowlist under ignored `data/processed/news/aliases/`.
+* The GDELT allowlist disables pure ticker aliases by default, keeps documented high-risk short names disabled, and enables only explicitly curated high-confidence Chinese short names and English brand aliases when present in the TEJ-derived metadata.
+* Hardened `expanded_reviewed` so unlisted short aliases such as broad English words or acronyms remain disabled instead of being enabled by fallback logic.
+* The workflow normalizes TEJ display marks such as trailing `*` before alias output while preserving source-column traceability and review notes.
+* This step did not run a live GDELT probe, did not create a notebook, and did not compute a Hype Index result. Generated alias CSV files remain local-only and must not be committed.
+
+### Goal 2F local top-50 alias table generator
+
+* Added reusable alias-generation code for the TEJ-based top-50 universe.
+* The alias generator reads local TEJ processed `company_metadata.csv` and `top50_universe_20250331.csv` files, then writes local-only alias candidates, review rows, and summary JSON under ignored `data/processed/news/aliases/`.
+* Candidate aliases are generated from ticker, official Chinese name, Chinese short name, official English name, and English short name while preserving the source column.
+* Short or broad aliases are flagged for review, including known ambiguous Taiwan-market aliases such as `統一`, `長榮`, `台塑`, `中鋼`, `國泰`, `富邦`, `第一`, `合庫`, and `台新`.
+* The GDELT streaming probe can read alias CSV rows and only uses aliases where `use_for_matching` is true.
+* This step did not create a committed alias table, did not run a 50-company GDELT probe, did not create a notebook, and did not compute a Hype Index result.
+
+### Bounded GDELT raw streaming probe
+
+* Added a streaming GDELT raw GKG feasibility probe that can dry-run by default or execute only with explicit `--execute`.
+* The probe processes one compressed raw GKG zip file at a time, filters by a small alias list, writes metadata-only summaries under ignored `data/processed/news/` paths, and deletes temporary raw files unless `--keep-raw` is explicitly set.
+* Fixed large-field CSV parsing by raising the CSV field-size limit before any GKG reader is created.
+* Raised the explicit `max_files` safety cap enough for a 3,500-file month-scale probe while keeping a hard cap that rejects full-year-sized runs.
+* Enforced `disk_limit_gb` during raw-file probing so local storage exhaustion stops the probe with `completed=false` and `disk_limit_gb_exceeded` instead of only being reported after completion.
+* Added bounded retry handling for transient per-file download / partial-file errors, including transfer accounting for failed partial download attempts.
+* Added synthetic offline tests for alias matching, large GKG fields, temporary raw-file cleanup, `max_files` and `max_download_mb` limits, ignored output-path enforcement, and complete count aggregation beyond the metadata sample cap.
+* Stage A live smoke probe completed for 2025-04-01 with 8 / 8 files downloaded, 47,618,732 compressed bytes, 2 matched rows, 1 unique URL, and no kept raw zip files.
+* Stage B full-day probe stopped at the configured 500 MB download cap while downloading `20250401193000.gkg.csv.zip`, before the 96-file day could complete. Stage C was not attempted because the ordered bounded run failed at Stage B.
+* Fixed the raw headerless GKG schema mapping after review: the parser now treats fields as `GKGRECORDID`, `DATE`, `SourceCollectionIdentifier`, `SourceCommonName`, and `DocumentIdentifier`, keeping source domain separate from URL / document identifier.
+* Fixed headered GKG detection so standard headered files are parsed by column names instead of falling back to raw positional indices.
+* Reran the one-day live probe with a higher 800 MB cap. It completed 96 / 96 files, downloaded 635,221,763 compressed bytes, found 118 matched rows and 113 unique document identifiers, and wrote only ignored local metadata outputs. The matched sample now uses URL-like `document_identifier` values rather than source domains.
+* This remains feasibility tooling only. It is not a full-year acquisition, not a production news-count pipeline, and not a Hype Index computation.
+* No real news data files were created or committed.
+
+### Goal 2D zero-cost news acquisition feasibility sprint
+
+* Actively checked zero-cost / no-cloud news-data routes for the 2025-04-01 to 2026-03-31 Taiwan Hype Index window.
+* Live-tested GDELT raw GKG file availability with small `HEAD` checks and tiny in-memory metadata scans for TSMC, Hon Hai, and MediaTek aliases. The probe found company-alias hits in the project period and saved no records.
+* Estimated GDELT raw GKG size from a small sample: 96 files per day, 672 files per week, and 35,040 files for the full project window; a naive full-window compressed download would be roughly 147 GB using the sample average, so the next step should stream and filter selectively.
+* Live-tested the Anue / Cnyes public Taiwan stock news metadata endpoint. It appears technically promising for historical metadata but remains a backup / manual-validation route until terms and stable access assumptions are reviewed.
+* Checked CNA RSS, UDN / Economic Daily News, MoneyDJ, Common Crawl, GDELT DOC API, GDELT BigQuery, and MOPS as alternative or fallback routes.
+* Selected GDELT raw GKG direct download as the recommended primary zero-cost route for the next bounded acquisition prototype.
+* BigQuery remains rejected for this project because it requires Google Cloud / BigQuery access.
+* No production news data was collected, no probe output files were saved, no notebook was created, and no Hype Index result was produced.
+
 ## 2026-06-20
+
+### Zero-cost news-source route revision
+
+* Revised the GDELT source plan to satisfy the zero-cost / no-cloud constraint.
+* Reclassified GDELT BigQuery / GKG as technically feasible but not selected, because it requires Google Cloud / BigQuery access and may require billing or credentials.
+* Reclassified GDELT DOC API as recent exploratory only, not the production historical source for the 2025-04-01 to 2026-03-31 project window.
+* Promoted GDELT raw data files / direct download as the recommended zero-cost route for a tiny local feasibility probe.
+* Updated the prototype plan and dry-run helper to enumerate raw GDELT file URLs without downloading files or requiring cloud credentials.
+* No production news data was collected, no raw GDELT files were downloaded, and no Hype Index result was produced.
+
+### Goal 2B GDELT metadata prototype plan
+
+* Added a GDELT metadata prototype plan for a small feasibility step. This section has been superseded by the zero-cost route revision above.
+* Added SQL templates for one-company and multi-company metadata probes under `queries/gdelt/`; these are now archived reference only.
+* Added an optional dry-run-first probe script; it now enumerates raw GDELT file URLs without requiring BigQuery credentials.
+* Added synthetic tests for dry-run rendering and ignored local output-path guards.
+* No production news data was collected, no news-count pipeline was implemented, and no Hype Index result was produced.
 
 ### Goal 2A news-source feasibility audit
 
 * Added a web-researched feasibility audit for candidate Taiwan Hype Index news sources.
-* Identified GDELT 2.0 BigQuery / GKG metadata as the primary candidate for the next small retrospective prototype.
+* Initially identified GDELT 2.0 BigQuery / GKG metadata as the primary candidate for the next small retrospective prototype; this was superseded by the zero-cost / no-cloud route revision above.
 * Recorded GDELT DOC API as an exploratory backup because official documentation is useful but a tiny local query hit HTTP 429.
 * Recorded CNA RSS / public pages, Economic Daily News, MoneyDJ, and Anue / Cnyes as backup or manual-validation candidates, pending terms-of-use and stable access-method review.
 * Recorded MOPS / public company announcements as event-context material only, not as the main Hype Index news-attention source.
