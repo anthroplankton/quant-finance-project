@@ -177,6 +177,8 @@ Completed local probe summaries for the selected two chunks are:
 
 The combined missing-file ratio is about 0.074%. The local summaries did not show a full-day or full-week zero-news failure. The unique URL count in the combined row is the sum of chunk-summary unique URLs; any cross-chunk deduplication should be handled later in the Hype Index construction step. These outputs remain local-only under ignored `data/processed/news/` paths and should not be committed.
 
+The next local step is count aggregation, not Hype Index computation. `scripts/build_gdelt_weekly_counts.py` reads the selected chunks' `probe_summary.json` and `stock_day_counts.csv`, validates that the chunks completed without failed files or threshold failures, rejects capped probe summaries, validates that processed plus missing plus failed file counts account for the uncapped GDELT candidate file grid, reconciles `stock_day_counts.csv` `matched_rows` totals against the paired probe summary, validates that the selected chunk date ranges continuously cover the full 2025-04-05 to 2025-05-30 pilot without gaps or overlaps, rejects overlapping stock-day rows, validates tickers against the TEJ-based top-50 universe, and writes a zero-filled 50 × 8 stock-week news-count panel under ignored `data/processed/news/` paths. Capped, stale, or truncated probe outputs are useful diagnostics only and must not be used as aggregation inputs. The `news_count_unique_urls` field is the sum of stock-day unique URL counts within each stock-week; it is not full cross-day URL deduplication.
+
 Regenerate the local alias allowlist first:
 
 ```bash

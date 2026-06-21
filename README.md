@@ -69,6 +69,42 @@ uv run python scripts/probe_gdelt_raw_stream.py --start-date 2025-04-01 --end-da
 
 Add `--execute` only for an explicit live probe.
 
+After the two selected 8-week pilot chunks exist locally, build the zero-filled stock-week news-count panel with explicit input directories:
+
+```bash
+uv run python scripts/build_gdelt_weekly_counts.py \
+  --pilot-start-date 2025-04-05 \
+  --pilot-end-date 2025-05-30 \
+  --universe-file data/processed/tej/top50_universe_20250331.csv \
+  --input-dir data/processed/news/gdelt_pilot_8w/chunk_20250405_20250502 \
+  --input-dir data/processed/news/gdelt_pilot_8w/chunk_20250503_20250530 \
+  --output-dir data/processed/news/gdelt_pilot_8w/weekly_counts
+```
+
+If the local chunk directories still live under `data/processed/news/gdelt_pilot_12w/`, keep that parent in the two `--input-dir` paths; the script does not assume a fixed parent directory name.
+
+This aggregation writes local-only count tables. It does not compute a Hype Index or join market-cap weights.
+Capped GDELT probe outputs are diagnostics only; aggregation inputs must account
+for the uncapped GDELT candidate file grid before zero-filled weeks are valid.
+
+After the Goal 3A news-count panel and TEJ weekly market-cap weights both exist
+locally, build the Hype-ready input panel:
+
+```bash
+uv run python scripts/build_hype_input_panel.py \
+  --pilot-start-date 2025-04-05 \
+  --pilot-end-date 2025-05-30 \
+  --news-counts-file data/processed/news/gdelt_pilot_8w/weekly_counts/stock_week_news_counts_20250405_20250530.csv \
+  --market-weights-file data/processed/tej/weekly_market_cap_weights_20250401_20260331.csv \
+  --universe-file data/processed/tej/top50_universe_20250331.csv \
+  --output-dir data/processed/hype_index/pilot_8w
+```
+
+This join writes local-only Hype-ready inputs under ignored
+`data/processed/hype_index/` paths. It joins TEJ weekly market-cap weights and
+adds a weekly total news-count diagnostic, but it still does not compute raw
+Hype Index or market-cap-adjusted Hype Index values.
+
 ## Planned direction
 
 The project direction is:

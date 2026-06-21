@@ -2,6 +2,27 @@
 
 ## 2026-06-22
 
+### Goal 3B Hype-ready input panel join
+
+* Added a local-only Goal 3B pipeline that joins the Goal 3A stock-week GDELT news-count panel with TEJ weekly market-cap weights for the active 8-week pilot.
+* The join validates the 50 × 8 stock-week news-count panel, validates the selected TEJ weekly weights, checks that each selected week has exactly 50 tickers, confirms positive weights summing to 1, and requires each TEJ `weight_date` to fall inside the corresponding Saturday-to-Friday week.
+* The join validates any existing news-count `week_index` against canonical Saturday-to-Friday weekly bins, then writes canonical `week_index` labels to the Hype-ready panel.
+* The resulting panel includes `weekly_total_news_count_unique_urls` only as a diagnostic denominator candidate for a later raw Hype calculation. Goal 3B does not compute raw Hype Index, market-cap-adjusted Hype Index, or any news-count-to-weight ratio.
+* Outputs are written under ignored `data/processed/hype_index/` paths. No live GDELT download was run, no notebook or figure was created, and no Hype Index result has been computed.
+
+### Goal 3A local stock-week news-count aggregation
+
+* Added a local-only aggregation pipeline that converts selected GDELT chunk-level `stock_day_counts.csv` files into a zero-filled stock-week news-count panel for the 8-week pilot.
+* The aggregation validates each input chunk's `probe_summary.json`, rejects failed or incomplete chunks, rejects overlapping stock-day rows, validates matched tickers against the TEJ-based top-50 universe, and builds Saturday-to-Friday weekly bins.
+* Hardened the aggregation so selected chunk date ranges must continuously cover the full pilot window before zero filling; omitted chunks, gaps, overlaps, or out-of-window chunks now fail validation instead of being interpreted as zero-news weeks.
+* Hardened per-chunk file-grid validation so capped probe summaries and incomplete `files_processed + files_missing + files_failed` accounting now fail before zero filling. This prevents unattempted GDELT raw files from being interpreted as zero-news observations.
+* Hardened per-chunk stock-day validation so stale or mismatched `stock_day_counts.csv` rows outside their own chunk's `probe_summary.json` date range now fail before aggregation.
+* Hardened count reconciliation so empty, header-only, stale, or truncated `stock_day_counts.csv` files fail when they disagree with the paired `probe_summary.json` `matched_rows`. This prevents real matches from being converted into zero-news observations.
+* The first implementation window remains 2025-04-05 to 2025-05-30, exactly 8 full weeks, so the fixed top-50 panel should contain 50 × 8 = 400 stock-week rows.
+* `news_count_unique_urls` is defined as the sum of stock-day unique URL counts within each stock-week. It is not full cross-day URL deduplication because the current probe output stores daily aggregate counts rather than a URL-level table.
+* `matched_rows` is preserved as a diagnostic count. This step does not compute raw Hype Index, does not compute market-cap-adjusted Hype Index, and does not join TEJ weekly market-cap weights.
+* Outputs are written under ignored `data/processed/news/` paths. No live GDELT download was run, no notebook was created, and no Hype Index result has been computed.
+
 ### First implementation window revised to 8 weeks
 
 * Revised the first implementation GDELT / Hype Index pilot from the previously planned 12 weeks to an 8-week window: 2025-04-05 to 2025-05-30 inclusive.
