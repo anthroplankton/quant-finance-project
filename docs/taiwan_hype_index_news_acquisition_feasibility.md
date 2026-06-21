@@ -141,6 +141,72 @@ This route is the only candidate verified as all of the following:
 
 It is not yet a production news-count pipeline. The next step should still be a bounded local acquisition prototype.
 
+## First Implementation Pilot Window
+
+The first implementation should not immediately scan the full 2025-04-01 to 2026-03-31 market panel. The chosen news and Hype Index pilot window is a 12-week calendar window:
+
+- news calendar window: 2025-04-05 to 2025-06-27 inclusive;
+- weekly bins: Saturday-to-Friday, ending on Fridays;
+- length: exactly 84 calendar days, or 12 full 7-day weeks;
+- first week: 2025-04-05 to 2025-04-11;
+- last week: 2025-06-21 to 2025-06-27.
+
+The pilot window starts at the first complete Saturday-to-Friday weekly bin after the 2025-04-01 TEJ market-panel start. It does not exclude the 2025-04-03 to 2025-04-06 holiday/weekend period entirely; news is collected on calendar days, including weekends and holidays. It avoids partial weeks, includes important April 2025 Taiwan market/news events, and keeps raw GDELT transfer volume manageable for the first implementation. It still gives 12 weekly observations, enough for a first descriptive Hype Index pilot.
+
+Market-cap weights should continue to come from the TEJ-derived weekly market-cap weights built from the full TEJ market panel. For each Saturday-to-Friday news week, the market-cap weight convention is the last available TEJ trading day within that week. Do not assume each Friday is a trading day; if the Friday is a market holiday or otherwise absent from TEJ trading data, use the last available trading day in the same week.
+
+The 12-week GDELT run should be split into three 4-week chunks:
+
+| Chunk | Calendar window | Days | Expected GDELT files |
+|---|---|---:|---:|
+| 1 | 2025-04-05 to 2025-05-02 | 28 | 2,688 |
+| 2 | 2025-05-03 to 2025-05-30 | 28 | 2,688 |
+| 3 | 2025-05-31 to 2025-06-27 | 28 | 2,688 |
+
+Each chunk fits the bounded month-scale `--max-files` cap. The full-year run remains inappropriate for the first implementation because it would require about 35,040 raw GKG files and a large total network transfer before alias precision, duplicate handling, and weekly aggregation are fully reviewed.
+
+Regenerate the local alias allowlist first:
+
+```bash
+uv run python scripts/build_top50_alias_table.py --profile expanded_reviewed
+```
+
+Then review dry runs by omitting `--execute`. When ready for a bounded live run, use separate ignored output directories so chunk outputs do not overwrite one another:
+
+```bash
+uv run python scripts/probe_gdelt_raw_stream.py \
+  --execute \
+  --start-date 2025-04-05 \
+  --end-date 2025-05-02 \
+  --aliases-file data/processed/news/aliases/top50_alias_allowlist_gdelt_expanded_reviewed.csv \
+  --max-files 2688 \
+  --max-download-mb 20000 \
+  --disk-limit-gb 5 \
+  --output-dir data/processed/news/gdelt_pilot_12w/chunk_20250405_20250502
+
+uv run python scripts/probe_gdelt_raw_stream.py \
+  --execute \
+  --start-date 2025-05-03 \
+  --end-date 2025-05-30 \
+  --aliases-file data/processed/news/aliases/top50_alias_allowlist_gdelt_expanded_reviewed.csv \
+  --max-files 2688 \
+  --max-download-mb 20000 \
+  --disk-limit-gb 5 \
+  --output-dir data/processed/news/gdelt_pilot_12w/chunk_20250503_20250530
+
+uv run python scripts/probe_gdelt_raw_stream.py \
+  --execute \
+  --start-date 2025-05-31 \
+  --end-date 2025-06-27 \
+  --aliases-file data/processed/news/aliases/top50_alias_allowlist_gdelt_expanded_reviewed.csv \
+  --max-files 2688 \
+  --max-download-mb 20000 \
+  --disk-limit-gb 5 \
+  --output-dir data/processed/news/gdelt_pilot_12w/chunk_20250531_20250627
+```
+
+All GDELT outputs from these commands remain local-only under ignored `data/processed/news/` paths. They should not be committed.
+
 ## Fallback Route
 
 The least-bad fallback is:
@@ -198,6 +264,8 @@ Recommended escalation sequence:
 
 The CLI hard cap allows up to 3,500 candidate GKG files, enough for a 30-day month-scale probe at 96 files per day. A full-window run of roughly 35,040 files is intentionally rejected by this cap. Live execution still requires explicit `--execute`, remains bounded by `--max-download-mb` for network transfer and `--disk-limit-gb` for local probe storage, and deletes raw zip files unless `--keep-raw` is selected. If the local storage budget would be exceeded during a raw download, the probe stops with `completed=false` and records `disk_limit_gb_exceeded` in the summary.
 
+Occasional missing GDELT raw archive files are treated as a data-source limitation rather than a transient download failure. If a candidate raw GKG URL returns HTTP 404, the probe records it under `missing_files`, increments `files_missing`, skips retries for that URL, and continues to the next candidate file. Missing files are not counted as successfully processed files and do not contribute to `compressed_bytes_processed_successful`. The default `--max-missing-files 10` threshold allows a small number of archive gaps in a chunk; if the threshold is exceeded, the probe stops with `completed=false` and records `missing_file_threshold_exceeded`. Missing-file counts and ratios should be reported with any pilot-window results.
+
 The probe writes:
 
 - `probe_summary.json`;
@@ -214,6 +282,7 @@ Accounting convention:
 - `compressed_bytes_transferred_total` records actual network transfer, including failed partial downloads and retried attempts.
 - `download_attempts` and `retry_count` make transient partial-file or corrupt-zip retries auditable.
 - `failed_files` is a bounded error list for URLs that fail after all retries.
+- `files_missing`, `missing_files`, and `missing_file_ratio` record HTTP 404 raw-file gaps separately from transient failures.
 
 ## Top-50 Alias Table Workflow
 
@@ -251,6 +320,6 @@ The alias script writes:
 
 The generated schema includes ticker, stock ID, alias text, alias type, language, source column, ambiguity flag, matching flag, review reason, profile, and notes. The GDELT expanded-reviewed policy disables pure ticker aliases by default because numeric aliases such as `2330` and `2454` can match unrelated numbers in raw GKG rows. Official Chinese and English full names are generally enabled for matching.
 
-The GDELT high-risk short-name policy keeps `統一`, `長榮`, `台塑`, `國泰`, `富邦`, `第一`, `合庫`, and `台新` disabled unless explicitly overridden in a later reviewed table. The expanded-reviewed policy enables short or brand aliases only when they are explicitly curated. The current curated Chinese list includes `鴻海`, `聯電`, `華碩`, `廣達`, `瑞昱`, `智邦`, `緯創`, `緯穎`, `萬海`, `遠傳`, `和碩`, `聯詠`, `陽明`, `彰銀`, and `國巨`; the current curated English / brand list includes `TSMC`, `MediaTek`, `Hon Hai`, `Foxconn`, and `Yageo`. Unlisted short aliases, including broad English words such as `DELTA`, remain disabled and are marked for review. The script also normalizes TEJ display marks, for example using `國巨` for a source value such as `國巨*`, while preserving the source column and notes for review.
+The GDELT high-risk short-name policy keeps `統一`, `長榮`, `台塑`, `南亞`, `國泰`, `富邦`, `第一`, `合庫`, and `台新` disabled unless explicitly overridden in a later reviewed table. The expanded-reviewed policy enables official full names plus short or brand aliases only when they are explicitly curated. The current curated Chinese list includes core standard short names such as `台積電`, `聯發科`, `鴻海`, `聯電`, `中華電`, `台達電`, `日月光投控`, `國巨`, `華碩`, `廣達`, `瑞昱`, `智邦`, `緯創`, `緯穎`, `萬海`, `遠傳`, `和碩`, `聯詠`, `陽明`, and `彰銀`, plus precise non-generic financial or airline aliases such as `玉山金`, `兆豐金`, `中信金`, `元大金`, `開發金`, `第一金`, `合庫金`, and `長榮航`. The current curated English / brand list includes `TSMC`, `MediaTek`, `Hon Hai`, `Foxconn`, and `Yageo`. Unlisted short aliases, including broad English words or acronyms such as `DELTA`, `FIRST`, and `CSC`, remain disabled and are marked for review. The script also normalizes TEJ display marks, for example using `國巨` for a source value such as `國巨*`, while preserving the source column and notes for review.
 
 The GDELT streaming probe can read the expanded-reviewed CSV and will use only rows where `use_for_matching` is true.

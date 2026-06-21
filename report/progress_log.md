@@ -2,6 +2,37 @@
 
 ## 2026-06-21
 
+### GDELT expanded-reviewed alias policy hardening
+
+* Added core Chinese short names such as `台積電`, `聯發科`, and `鴻海` to the explicit `expanded_reviewed` GDELT alias allowlist so standard Chinese company mentions are not dropped from pilot news counts.
+* Kept pure ticker aliases disabled for GDELT matching and kept broad or ambiguous aliases such as `統一`, `長榮`, `台塑`, `南亞`, `國泰`, `富邦`, `第一`, `合庫`, and `台新` disabled.
+* Kept generic English short names and acronyms such as `DELTA`, `FIRST`, and `CSC` disabled unless they appear as precise official full names or are explicitly curated later.
+* Added synthetic regression tests confirming that curated Chinese and English aliases are enabled, unlisted short aliases remain disabled, GDELT matching stays limited to content / entity / name fields, and HTTP 404 missing-file handling remains intact.
+* This update did not run a live GDELT download, did not create a notebook, and did not compute a Hype Index result.
+
+### GDELT matching-scope hardening
+
+* Restricted the GDELT raw streaming probe so alias matching uses only GKG content / entity / name fields such as themes, locations, persons, organizations, and `AllNames`.
+* URL and source metadata fields such as `DocumentIdentifier`, `SourceCommonName`, source domains, record IDs, dates, and source collection identifiers are not used for company alias matching.
+* Verified the existing HTTP 404 missing-file behavior with synthetic tests: missing raw GKG archive files are skipped without retrying, recorded in `files_missing` / `missing_files`, and tolerated only within the configured missing-file threshold.
+* Corrected the 12-week pilot-window rationale: the window starts at the first full Saturday-to-Friday weekly bin after the TEJ market-panel start and still includes calendar news days during the Apr 5-6 holiday/weekend period.
+* This update did not run a live GDELT download, did not create a notebook, and did not compute a Hype Index result.
+
+### 12-week pilot window decision
+
+* Shortened the first implementation research window from the full 2025-04-01 to 2026-03-31 market panel to a 12-week pilot news window: 2025-04-05 to 2025-06-27 inclusive.
+* Defined weekly news bins as Saturday-to-Friday, ending on Fridays, with exactly 84 calendar days and 12 full 7-day weeks.
+* Recorded the chunked GDELT acquisition plan as three 28-day windows: 2025-04-05 to 2025-05-02, 2025-05-03 to 2025-05-30, and 2025-05-31 to 2025-06-27.
+* Market-cap weights should use the last available TEJ trading day within each weekly bin rather than assuming Friday is always a trading day.
+* This is a documentation-only decision update. No 12-week GDELT data has been collected, no notebook was created, and no Hype Index result has been computed.
+
+### GDELT missing archive-file handling
+
+* During the 12-week GDELT acquisition attempt, chunk 2 initially hit a missing raw archive file at `20250503003000.gkg.csv.zip`.
+* Updated the streaming probe so HTTP 404 raw GKG files are recorded as missing source files, skipped without retrying, and summarized separately from transient failures.
+* Added a conservative missing-file threshold so occasional archive gaps can be tolerated while broader source-availability problems still stop the probe with `completed=false`.
+* This update did not run a live GDELT download, did not create a notebook, and did not compute a Hype Index result.
+
 ### Goal 2F-Review GDELT expanded-reviewed alias allowlist
 
 * Extended the local alias workflow so it can write a GDELT-specific `expanded_reviewed` allowlist under ignored `data/processed/news/aliases/`.

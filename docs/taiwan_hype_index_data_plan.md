@@ -23,6 +23,20 @@ Phase 1 應產出：
 
 Phase 1 不包含 sentiment、LLM、prediction test 或 portfolio application。
 
+## First Implementation Pilot Window
+
+The first implementation will use a 12-week pilot window for news collection and Hype Index construction rather than immediately processing the full 2025-04-01 to 2026-03-31 market panel.
+
+- News calendar window: **2025-04-05 to 2025-06-27 inclusive**.
+- Weekly bins: **Saturday-to-Friday**, ending on Fridays.
+- Length: **84 calendar days**, or exactly **12 full 7-day weeks**.
+- First week: **2025-04-05 to 2025-04-11**.
+- Last week: **2025-06-21 to 2025-06-27**.
+
+The pilot window starts at the first complete Saturday-to-Friday weekly bin after the 2025-04-01 TEJ market-panel start. It does not exclude the 2025-04-03 to 2025-04-06 holiday/weekend period entirely; news is collected on calendar days, including weekends and holidays. It avoids partial weeks, includes important April 2025 Taiwan market/news events, and keeps raw GDELT network volume manageable for a first descriptive pilot. It still provides 12 weekly observations for the first raw and market-cap-adjusted Hype Index tables.
+
+The full TEJ market panel remains the market-data source for the project. The first report window is only the 12-week news / Hype Index pilot window. Weekly market-cap weights should be aligned using the last available TEJ trading day within each Saturday-to-Friday week. Do not assume each Friday is a trading day; if Friday is absent because of a market holiday or missing trading date, use the last available trading day in that same week.
+
 ## Universe Source Plan
 
 Universe 的 first implementation source 是 local TEJPro manual exports。若未來取得 official 或 index-provider Taiwan 50 constituent / constituent-weight source，應另行記錄 source、as-of date、methodology 差異，並決定是否替換或對照目前的 TEJ-based top-50 proxy。若使用 ETF holdings 作為輔助來源，報告中應清楚標示它是 proxy source，而不是 index methodology 本身。
@@ -80,6 +94,8 @@ Alias rules must be inspectable and documented. A later implementation should ma
 Chinese company-name matching has several risks. Some short names are common words; some group names may refer to multiple listed firms; some brand names may refer to products rather than the listed parent company; and some industry phrases may produce false positives. Ambiguous aliases should be flagged in the universe table or a separate alias-review note before they are used for production counts.
 
 Phase 1 should prefer conservative matching rules. It is better to miss some uncertain mentions in the first descriptive version than to inflate counts with broad, hard-to-audit aliases.
+
+For the 12-week GDELT pilot, the `expanded_reviewed` allowlist should enable official full names and only explicitly curated high-confidence short or brand aliases. Core Chinese short names such as `台積電`, `聯發科`, and `鴻海` are enabled when present, while pure tickers, generic English acronyms, and broad aliases such as `統一`, `長榮`, `台塑`, `南亞`, `國泰`, `富邦`, `第一`, `合庫`, and `台新` remain disabled unless a later manual review explicitly changes the policy.
 
 ## News Source Candidates
 
