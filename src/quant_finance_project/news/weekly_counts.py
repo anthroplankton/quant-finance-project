@@ -35,6 +35,17 @@ STOCK_DAY_COUNT_COLUMNS = [
     "matched_rows",
     "unique_urls",
 ]
+COUNT_DEFINITION_METADATA = {
+    "count_definition": "sum_of_stock_day_unique_document_counts",
+    "main_news_count_column": "news_count_unique_urls",
+    "matched_rows_role": "diagnostic_only",
+    "cross_day_url_deduplicated": False,
+    "url_level_deduplication_required_for_future_exact_article_count": True,
+    "paper_alignment_note": (
+        "weekly Taiwan-market adaptation using aggregate GDELT stock-day "
+        "unique document counts"
+    ),
+}
 FORBIDDEN_HYPE_COLUMNS = {
     "hype",
     "raw_hype",
@@ -726,9 +737,11 @@ def build_summary(
         "validation_status": "passed"
         if actual_rows == expected_rows
         else "failed_row_count_mismatch",
-        "count_definition": (
-            "news_count_unique_urls is the sum of stock-day unique URL counts "
-            "within each stock-week; it is not full cross-day URL deduplication."
+        **COUNT_DEFINITION_METADATA,
+        "count_definition_note": (
+            "news_count_unique_urls is the sum of stock-day unique GDELT document "
+            "counts within each stock-week; it is not full cross-day URL "
+            "deduplication."
         ),
         "matched_rows_definition": (
             "matched_rows is preserved as a diagnostic row-count measure from "

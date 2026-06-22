@@ -158,6 +158,14 @@ def test_weekly_aggregation_zero_fills_synthetic_universe(tmp_path: Path) -> Non
     assert summary["zero_stock_week_ratio"] == pytest.approx(4 / 6)
     assert summary["total_news_count_unique_urls"] == 8
     assert summary["total_matched_rows"] == 9
+    assert summary["count_definition"] == "sum_of_stock_day_unique_document_counts"
+    assert summary["main_news_count_column"] == "news_count_unique_urls"
+    assert summary["matched_rows_role"] == "diagnostic_only"
+    assert summary["cross_day_url_deduplicated"] is False
+    assert (
+        summary["url_level_deduplication_required_for_future_exact_article_count"]
+        is True
+    )
     assert set(weekly_totals["news_count_unique_urls"]) == {4}
     assert len(coverage) == 3
 

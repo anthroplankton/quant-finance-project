@@ -83,6 +83,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"weekly_summary_rows: {len(weekly_summary)}")
     print(f"stock_summary_rows: {len(stock_summary)}")
     print(f"validation_status: {summary['validation_status']}")
+    print(f"missing_hype_week_count: {summary['missing_hype_week_count']}")
     print("hype_index_computed: true")
     print("market_cap_adjusted_hype_computed: true")
     return 0

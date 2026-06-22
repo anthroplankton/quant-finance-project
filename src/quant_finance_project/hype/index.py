@@ -70,6 +70,17 @@ METADATA_COLUMNS = [
     "tse_industry",
     "tej_industry",
 ]
+COUNT_DEFINITION_METADATA = {
+    "count_definition": "sum_of_stock_day_unique_document_counts",
+    "main_news_count_column": "news_count_unique_urls",
+    "matched_rows_role": "diagnostic_only",
+    "cross_day_url_deduplicated": False,
+    "url_level_deduplication_required_for_future_exact_article_count": True,
+    "paper_alignment_note": (
+        "weekly Taiwan-market adaptation using aggregate GDELT stock-day "
+        "unique document counts"
+    ),
+}
 FORBIDDEN_PREEXISTING_HYPE_COLUMNS = {
     "hype",
     "raw_hype",
@@ -285,13 +296,6 @@ def load_and_validate_input_panel(
         )
 
     weekly_news = panel.groupby("week_end")["news_count_unique_urls"].transform("sum")
-    if (weekly_news <= 0).any():
-        bad_weeks = sorted(panel.loc[weekly_news <= 0, "week_end"].unique().tolist())
-        raise HypeIndexError(
-            "weekly_total_news_count_unique_urls must be positive for each week; "
-            f"zero-total week(s): {', '.join(bad_weeks)}."
-        )
-
     total_values_by_week = panel.groupby("week_end")[
         "weekly_total_news_count_unique_urls"
     ].nunique()
@@ -330,16 +334,24 @@ def compute_hype_indices(input_panel: pd.DataFrame) -> pd.DataFrame:
     """Compute raw Hype and capitalization-adjusted Hype for each stock-week."""
 
     panel = input_panel.copy()
-    panel["raw_hype"] = (
-        panel["news_count_unique_urls"] / panel["weekly_total_news_count_unique_urls"]
+    positive_news_week = panel["weekly_total_news_count_unique_urls"].gt(0)
+    panel["raw_hype"] = math.nan
+    panel.loc[positive_news_week, "raw_hype"] = (
+        panel.loc[positive_news_week, "news_count_unique_urls"]
+        / panel.loc[positive_news_week, "weekly_total_news_count_unique_urls"]
     )
-    panel["market_cap_adjusted_hype"] = (
-        panel["raw_hype"] / panel["weekly_market_cap_weight"]
+    panel["market_cap_adjusted_hype"] = math.nan
+    panel.loc[positive_news_week, "market_cap_adjusted_hype"] = (
+        panel.loc[positive_news_week, "raw_hype"]
+        / panel.loc[positive_news_week, "weekly_market_cap_weight"]
     )
-    panel["raw_hype_minus_market_cap_weight"] = (
-        panel["raw_hype"] - panel["weekly_market_cap_weight"]
+    panel["raw_hype_minus_market_cap_weight"] = math.nan
+    panel.loc[positive_news_week, "raw_hype_minus_market_cap_weight"] = (
+        panel.loc[positive_news_week, "raw_hype"]
+        - panel.loc[positive_news_week, "weekly_market_cap_weight"]
     )
     panel["is_zero_news_stock_week"] = panel["news_count_unique_urls"].eq(0)
+    panel["is_missing_hype_week"] = ~positive_news_week
     validate_hype_outputs(panel)
 
     output_columns = [
@@ -357,6 +369,7 @@ def compute_hype_indices(input_panel: pd.DataFrame) -> pd.DataFrame:
         "market_cap_adjusted_hype",
         "raw_hype_minus_market_cap_weight",
         "is_zero_news_stock_week",
+        "is_missing_hype_week",
     ]
     output_columns = [column for column in output_columns if column in panel.columns]
     return panel[output_columns].sort_values(["ticker", "week_index"], kind="stable")
@@ -365,14 +378,36 @@ def compute_hype_indices(input_panel: pd.DataFrame) -> pd.DataFrame:
 def validate_hype_outputs(panel: pd.DataFrame) -> None:
     """Validate computed Hype Index outputs."""
 
-    for column in ("raw_hype", "market_cap_adjusted_hype"):
-        if (panel[column] < 0).any():
-            raise HypeIndexError(f"{column} must be nonnegative.")
-        finite = panel[column].map(math.isfinite)
-        if not finite.all():
-            raise HypeIndexError(f"{column} contains NaN or infinite value(s).")
+    hype_columns = (
+        "raw_hype",
+        "market_cap_adjusted_hype",
+        "raw_hype_minus_market_cap_weight",
+    )
+    missing_hype_week = panel["weekly_total_news_count_unique_urls"].eq(0)
+    if not panel["is_missing_hype_week"].eq(missing_hype_week).all():
+        raise HypeIndexError(
+            "is_missing_hype_week must identify zero-denominator weeks."
+        )
 
-    raw_sums = panel.groupby("week_end")["raw_hype"].sum()
+    for column in hype_columns:
+        present = panel[column].dropna()
+        finite = present.map(math.isfinite)
+        if not finite.all():
+            raise HypeIndexError(f"{column} contains infinite value(s).")
+        if not panel.loc[missing_hype_week, column].isna().all():
+            raise HypeIndexError(
+                f"{column} must be missing for zero-news denominator weeks."
+            )
+        if panel.loc[~missing_hype_week, column].isna().any():
+            raise HypeIndexError(
+                f"{column} must be present for positive-news denominator weeks."
+            )
+
+    for column in ("raw_hype", "market_cap_adjusted_hype"):
+        if (panel.loc[~missing_hype_week, column] < 0).any():
+            raise HypeIndexError(f"{column} must be nonnegative.")
+
+    raw_sums = panel.loc[~missing_hype_week].groupby("week_end")["raw_hype"].sum()
     bad_raw_sums = raw_sums.loc[(raw_sums - 1.0).abs().gt(RAW_HYPE_SUM_TOLERANCE)]
     if not bad_raw_sums.empty:
         raise HypeIndexError(
@@ -380,7 +415,7 @@ def validate_hype_outputs(panel: pd.DataFrame) -> None:
             f"bad sums={bad_raw_sums.to_dict()}."
         )
 
-    zero_news = panel["news_count_unique_urls"].eq(0)
+    zero_news = panel["news_count_unique_urls"].eq(0) & ~missing_hype_week
     if not panel.loc[zero_news, "raw_hype"].eq(0).all():
         raise HypeIndexError("Zero-news stock-week rows must have raw_hype=0.")
     if not panel.loc[zero_news, "market_cap_adjusted_hype"].eq(0).all():
@@ -394,6 +429,20 @@ def _ticker_with_max(group: pd.DataFrame, column: str) -> str:
     return str(ordered.iloc[0]["ticker"])
 
 
+def _finite_max_or_none(values: pd.Series) -> float | None:
+    present = values.dropna()
+    if present.empty:
+        return None
+    return float(present.max())
+
+
+def _ticker_with_max_or_none(group: pd.DataFrame, column: str) -> str | None:
+    present = group.loc[group[column].notna()]
+    if present.empty:
+        return None
+    return _ticker_with_max(present, column)
+
+
 def build_weekly_hype_summary(panel: pd.DataFrame) -> pd.DataFrame:
     """Build per-week Hype Index diagnostics."""
 
@@ -402,6 +451,7 @@ def build_weekly_hype_summary(panel: pd.DataFrame) -> pd.DataFrame:
         ["week_index", "week_start", "week_end"],
         sort=True,
     ):
+        is_missing_hype_week = bool(group["is_missing_hype_week"].all())
         rows.append(
             {
                 "week_index": int(week_index),
@@ -414,16 +464,22 @@ def build_weekly_hype_summary(panel: pd.DataFrame) -> pd.DataFrame:
                     group["news_count_unique_urls"].gt(0).sum()
                 ),
                 "zero_stock_count": int(group["news_count_unique_urls"].eq(0).sum()),
-                "max_raw_hype": float(group["raw_hype"].max()),
-                "ticker_with_max_raw_hype": _ticker_with_max(group, "raw_hype"),
-                "max_market_cap_adjusted_hype": float(
-                    group["market_cap_adjusted_hype"].max()
+                "is_missing_hype_week": is_missing_hype_week,
+                "max_raw_hype": _finite_max_or_none(group["raw_hype"]),
+                "ticker_with_max_raw_hype": _ticker_with_max_or_none(
+                    group,
+                    "raw_hype",
                 ),
-                "ticker_with_max_market_cap_adjusted_hype": _ticker_with_max(
+                "max_market_cap_adjusted_hype": _finite_max_or_none(
+                    group["market_cap_adjusted_hype"]
+                ),
+                "ticker_with_max_market_cap_adjusted_hype": _ticker_with_max_or_none(
                     group,
                     "market_cap_adjusted_hype",
                 ),
-                "raw_hype_sum": float(group["raw_hype"].sum()),
+                "raw_hype_sum": None
+                if is_missing_hype_week
+                else float(group["raw_hype"].sum()),
                 "market_cap_weight_sum": float(
                     group["weekly_market_cap_weight"].sum()
                 ),
@@ -442,6 +498,7 @@ def build_stock_hype_summary(panel: pd.DataFrame) -> pd.DataFrame:
             total_news_count_unique_urls=("news_count_unique_urls", "sum"),
             nonzero_week_count=("news_count_unique_urls", lambda values: int((values > 0).sum())),
             zero_week_count=("news_count_unique_urls", lambda values: int((values == 0).sum())),
+            missing_hype_week_count=("is_missing_hype_week", lambda values: int(values.sum())),
             mean_raw_hype=("raw_hype", "mean"),
             max_raw_hype=("raw_hype", "max"),
             mean_market_cap_adjusted_hype=("market_cap_adjusted_hype", "mean"),
@@ -454,13 +511,16 @@ def build_stock_hype_summary(panel: pd.DataFrame) -> pd.DataFrame:
     return grouped
 
 
+def _json_value(value: Any) -> Any:
+    if pd.isna(value):
+        return None
+    return value.item() if hasattr(value, "item") else value
+
+
 def _json_records(frame: pd.DataFrame) -> list[dict[str, Any]]:
     records = frame.to_dict(orient="records")
     return [
-        {
-            key: (value.item() if hasattr(value, "item") else value)
-            for key, value in row.items()
-        }
+        {key: _json_value(value) for key, value in row.items()}
         for row in records
     ]
 
@@ -480,6 +540,11 @@ def build_summary(
     actual_rows = int(len(panel))
     expected_rows = int(universe_size * week_count)
     zero_count = int(panel["is_zero_news_stock_week"].sum())
+    missing_week_rows = weekly_summary.loc[
+        weekly_summary["is_missing_hype_week"],
+        ["week_index", "week_start", "week_end"],
+    ]
+    positive_week_rows = weekly_summary.loc[~weekly_summary["is_missing_hype_week"]]
     return {
         "pilot_start_date": pilot_start_date,
         "pilot_end_date": pilot_end_date,
@@ -493,12 +558,17 @@ def build_summary(
         "zero_stock_week_ratio": round(zero_count / actual_rows, 6)
         if actual_rows
         else None,
+        "missing_hype_week_count": int(len(missing_week_rows)),
+        "missing_hype_weeks": _json_records(missing_week_rows),
+        "positive_news_week_count": int(len(positive_week_rows)),
+        "zero_denominator_rule": "mark_hype_values_missing",
         "weekly_raw_hype_sum_check": _json_records(
-            weekly_summary[["week_index", "week_end", "raw_hype_sum"]]
+            positive_week_rows[["week_index", "week_end", "raw_hype_sum"]]
         ),
         "weekly_market_cap_weight_sum_check": _json_records(
             weekly_summary[["week_index", "week_end", "market_cap_weight_sum"]]
         ),
+        **COUNT_DEFINITION_METADATA,
         "hype_index_computed": True,
         "market_cap_adjusted_hype_computed": True,
         "validation_status": "passed"

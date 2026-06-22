@@ -2,9 +2,9 @@
 
 ## Purpose
 
-這份文件定義 Taiwan Hype Index replication 的 data-source 與 universe 設計。它的目的不是立即下載資料或實作 pipeline，而是先把 Phase 1 需要的資料表、資料來源選擇、matching 規則、counting rule 與 missing-data rule 寫清楚，讓後續實作能保持可重現、可檢查，也適合寫進課程報告。
+這份文件定義 Taiwan Hype Index paper-inspired implementation 的 data-source 與 universe 設計。它的目的不是主張 fully paper-faithful article-level replication，而是把 Phase 1 需要的資料表、資料來源選擇、matching 規則、counting rule 與 missing-data rule 寫清楚，讓後續 bounded pilot 能保持可重現、可檢查，也適合寫進課程報告。
 
-本文件只服務於 **The Hype Index: an NLP-driven Measure of Market News Attention** (arXiv:2506.06329) 的台灣市場 replication / adaptation。它不引入 sentiment model、LLM workflow、prediction test 或 portfolio application。
+本文件只服務於 **The Hype Index: an NLP-driven Measure of Market News Attention** (arXiv:2506.06329) 的 Taiwan-market weekly adaptation。它不引入 sentiment model、LLM workflow、prediction test 或 portfolio application。
 
 ## Current Phase 1 Scope
 
@@ -38,16 +38,28 @@ The pilot window starts at the first complete Saturday-to-Friday weekly bin afte
 
 The full TEJ market panel remains the market-data source for the project. The first report window is only the 8-week news / Hype Index pilot window. Weekly market-cap weights should be aligned using the last available TEJ trading day within each Saturday-to-Friday week. Do not assume each Friday is a trading day; if Friday is absent because of a market holiday or missing trading date, use the last available trading day in that same week.
 
-Goal 3A aggregates the completed local GDELT chunk-level `stock_day_counts.csv` files into a zero-filled **50 × 8 = 400 row** stock-week news-count panel. Before zero filling, the selected chunk `probe_summary.json` date ranges must cover the full pilot window continuously, without gaps or overlaps; otherwise, an omitted chunk could be mistaken for zero-news weeks. Goal 3A also validates GDELT file-grid coverage: capped probes are rejected, `candidate_file_count_capped` must equal `candidate_file_count_uncapped`, and `files_processed + files_missing + files_failed` must equal the uncapped candidate count. Each chunk's `stock_day_counts.csv` rows must also fall inside that same chunk's inclusive `probe_summary.json` `start_date` to `end_date` range, so stale count files cannot be counted under the wrong chunk. The chunk count file must reconcile with its paired probe summary: `sum(stock_day_counts.matched_rows)` must equal `probe_summary.matched_rows`, and an empty count file is valid only when the summary also reports zero matched rows. After date, file-grid, per-chunk row-date, ticker, duplicate, and count-reconciliation validation all pass, zero-filled stock-week rows mean the data source covered that week but the stock had no matched news. The count column `news_count_unique_urls` is the sum of stock-day unique URL counts within each stock-week, not full cross-day URL deduplication, because the current probe output stores daily aggregate counts rather than a URL-level table. `matched_rows` is preserved as a diagnostic input-row count. This step is not yet raw Hype Index computation, market-cap-adjusted Hype Index computation, or a join with TEJ weekly market-cap weights.
+Goal 3A aggregates the completed local GDELT chunk-level `stock_day_counts.csv` files into a zero-filled **50 × 8 = 400 row** stock-week news-count panel. Before zero filling, the selected chunk `probe_summary.json` date ranges must cover the full pilot window continuously, without gaps or overlaps; otherwise, an omitted chunk could be mistaken for zero-news weeks. Goal 3A also validates GDELT file-grid coverage: capped probes are rejected, `candidate_file_count_capped` must equal `candidate_file_count_uncapped`, and `files_processed + files_missing + files_failed` must equal the uncapped candidate count. Each chunk's `stock_day_counts.csv` rows must also fall inside that same chunk's inclusive `probe_summary.json` `start_date` to `end_date` range, so stale count files cannot be counted under the wrong chunk. The chunk count file must reconcile with its paired probe summary: `sum(stock_day_counts.matched_rows)` must equal `probe_summary.matched_rows`, and an empty count file is valid only when the summary also reports zero matched rows. After date, file-grid, per-chunk row-date, ticker, duplicate, and count-reconciliation validation all pass, zero-filled stock-week rows mean the data source covered that week but the stock had no matched news.
+
+The original Hype Index paper counts news articles in the measurement period. This bounded 8-week pilot uses a Taiwan-market weekly adaptation based on the retained aggregate GDELT probe artifacts. The main count column is `news_count_unique_urls`, operationalized as:
+
+\[
+N_{i,w} = \sum_{d \in w}
+\text{stock-day unique GDELT document count}_{i,d}.
+\]
+
+`matched_rows` is diagnostic only and is not the main news-count input. The current pilot does **not** perform full ticker-week cross-day URL deduplication. If the same `document_identifier` appears for the same ticker on multiple days in the same Saturday-to-Friday week, `news_count_unique_urls` can overcount relative to an exact article-level weekly count. Full ticker-week URL deduplication would require retaining URL-level matched rows, not only `stock_day_counts.csv`. This is a first-implementation limitation and future improvement, not a blocker for the current bounded descriptive pilot. Goal 3A is still not raw Hype Index computation, market-cap-adjusted Hype Index computation, or a join with TEJ weekly market-cap weights.
 
 Goal 3B aligns the Goal 3A stock-week news-count panel with the TEJ weekly market-cap weights. The join key is `ticker` plus `week_end`, and the TEJ `weight_date` must fall inside the same Saturday-to-Friday bin, with weights summing to 1 for each selected week. The output uses canonical Saturday-to-Friday weekly bin labels, including `week_index`; any stale input `week_index` must match the canonical bins or the join fails. The output is a **Hype-ready input panel** under ignored `data/processed/hype_index/` paths. It includes `weekly_total_news_count_unique_urls` only as a diagnostic denominator candidate for the later raw Hype calculation; Goal 3B still does not compute `raw_hype`, `hype_index`, capitalization-adjusted Hype, or any news-count-to-weight ratio.
 
-Goal 3C computes the weekly Hype Index formulas based on the local reference paper in `references/local/arXiv-2506.06329v1`, with a Taiwan-market weekly adaptation. In the original paper, the Hype Index is defined as a daily news-attention share for the S&P 100 setting, and the Capitalization Adjusted Hype Index divides that news-attention share by market capitalization weight. In this project, the frequency is weekly, the universe is the TEJ-based fixed top-50 listed-stock universe, the window is **2025-04-05 to 2025-05-30**, the news count is `news_count_unique_urls`, and the size denominator is TEJ `weekly_market_cap_weight`.
+Goal 3C computes a paper-inspired Hype Index implementation based on the local reference paper in `references/local/arXiv-2506.06329v1`, with a Taiwan-market weekly adaptation. In the original paper, the Hype Index is defined as a daily news-attention share for the S&P 100 setting, and the Capitalization Adjusted Hype Index divides that news-attention share by market capitalization weight. In this project, the frequency is weekly, the universe is the TEJ-based fixed top-50 listed-stock universe, the window is **2025-04-05 to 2025-05-30**, the main count is the Goal 3A `news_count_unique_urls` approximation above, and the size denominator is TEJ `weekly_market_cap_weight`.
 
 For stock \(i\) and week \(w\), the project uses:
 
 \[
-N_{i,w} = \texttt{news\_count\_unique\_urls}_{i,w}, \quad
+N_{i,w}
+= \sum_{d \in w}
+\text{stock-day unique GDELT document count}_{i,d}
+= \texttt{news\_count\_unique\_urls}_{i,w}, \quad
 N_w = \sum_i N_{i,w}
 \]
 
@@ -61,7 +73,7 @@ N_w = \sum_i N_{i,w}
 {\texttt{weekly\_market\_cap\_weight}_{i,w}}
 \]
 
-`matched_rows` remains diagnostic only and is not the main news-count input. `raw_hype` sums to 1 within each week. `market_cap_adjusted_hype` is an attention-to-size ratio and is not normalized to sum to 1; a value above 1 means the stock receives more news attention than its market-cap weight, and a value below 1 means it receives less.
+For weeks with \(N_w > 0\), `raw_hype` sums to 1 within each week. `market_cap_adjusted_hype` is an attention-to-size ratio and is not normalized to sum to 1; a value above 1 means the stock receives more news attention than its market-cap weight, and a value below 1 means it receives less. For weeks with \(N_w = 0\), `raw_hype`, `market_cap_adjusted_hype`, and `raw_hype_minus_market_cap_weight` are marked missing rather than forced to zero.
 
 ## Universe Source Plan
 
@@ -168,14 +180,16 @@ This project should not implement scraping until the source choice and terms-of-
 
 The reference Hype Index idea counts media attention by stock or sector. For Taiwan news, a single article may mention multiple Taiwan 50 companies, especially in sector-wide electronics, AI, financial, or market-summary articles. The counting rule must therefore be fixed before producing indices.
 
-Phase 1 default rule: **one article mentioning multiple companies counts once for each matched company**. This rule is transparent, easy to audit, and directly supports stock-level and sector-level news-share construction. It also matches the intuition that one article can allocate attention to more than one company.
+Phase 1 conceptual rule: **one article mentioning multiple companies counts once for each matched company**. This rule is transparent, easy to audit, and directly supports stock-level and sector-level news-share construction. It also matches the intuition that one article can allocate attention to more than one company.
+
+The current bounded 8-week pilot approximates that article-level rule with aggregate GDELT `stock_day_counts.csv` outputs. It uses `news_count_unique_urls` as the sum of stock-day unique document counts by ticker-week. It does not yet have the URL-level matched table needed to deduplicate the same ticker-document pair across multiple days inside a week.
 
 Two alternatives should remain documented:
 
 - **Fractional counting**: one article with multiple matched companies contributes `1 / number_of_matches` to each company. This reduces broad-market article inflation but is less intuitive for attention exposure.
 - **Primary-company-only counting**: one article contributes only to the main matched company. This can reduce noise, but it requires reliable primary-entity detection and may be too subjective for Phase 1.
 
-The default rule should be revisited if sector-wide articles dominate the counts or if duplicate broad-market articles distort sector-level Hype Index.
+The default rule should be revisited if sector-wide articles dominate the counts or if duplicate broad-market articles distort sector-level Hype Index. A later exact article-count implementation should retain URL-level matched rows and deduplicate by ticker-week before computing \(N_{i,w}\).
 
 ## Market Cap and Price Data Source Plan
 
@@ -221,7 +235,7 @@ Weekly frequency should be the default first implementation. Weekly aggregation 
 
 Daily frequency can still be used for event-study plots. For example, a major market event can be shown with daily Hype Index and price / volatility context around the event window, while the main descriptive tables use weekly measures.
 
-Daily data should aggregate into weekly counts by summing matched article counts within the week. Weekly market-cap weight should use a documented convention, such as the last available trading day of the week or the average market cap across trading days. The first implementation should choose one convention and keep it consistent across all stocks and sectors.
+Daily data should aggregate into weekly counts by a documented rule. The current pilot sums stock-day unique GDELT document counts within each week; a future URL-level implementation should deduplicate ticker-document pairs across days before computing exact article-level weekly counts. Weekly market-cap weight should use a documented convention, such as the last available trading day of the week or the average market cap across trading days. The first implementation should choose one convention and keep it consistent across all stocks and sectors.
 
 ## Missing-Data and Zero-Denominator Rules
 
@@ -235,7 +249,7 @@ Missing price: if price is missing on a trading day, use the selected data sourc
 
 Non-trading days: news may arrive on non-trading days. Weekly aggregation can include weekend news in the relevant calendar week. For daily event-study plots, non-trading-day news should be assigned according to a documented rule, such as the publication date for attention plots and the next trading day for market reaction comparisons.
 
-Duplicate news: duplicate, syndicated, or reposted articles should be grouped with `duplicate_group_id`. Phase 1 should compute the main index after excluding duplicates, while optionally reporting how many duplicates were removed.
+Duplicate news: duplicate, syndicated, or reposted articles should eventually be grouped with `duplicate_group_id` or a normalized URL / document identifier. The current bounded pilot does not perform full ticker-week cross-day URL deduplication because only aggregate `stock_day_counts.csv` is retained. This limitation should be reported with any table based on the first implementation.
 
 ## First Implementation Decision
 
@@ -248,4 +262,4 @@ The first implementation should produce the following design-backed outputs loca
 - capitalization-adjusted Hype Index;
 - descriptive plots only.
 
-The first implementation should not include sentiment, LLM calls, prediction tests, portfolio application, live trading logic, or claims about empirical predictive performance. At the current documentation stage, no news data has been collected and no Hype Index result has been produced.
+The first implementation should not include sentiment, LLM calls, prediction tests, portfolio application, live trading logic, or claims about empirical predictive performance. At the Goal 3D-lite methodology cleanup stage, the local bounded 8-week pilot pipeline is implemented, but report tables, notebooks, figures, and full-year replication remain outside this step.

@@ -132,6 +132,21 @@ def _build(tmp_path: Path, *, rows=None, write_files=False):
     )
 
 
+def _zero_news_week_rows(week_end: str = "2025-04-18") -> list[dict[str, object]]:
+    return [
+        {
+            **row,
+            "news_count_unique_urls": 0,
+            "matched_rows": 0,
+            "active_news_days": 0,
+            "weekly_total_news_count_unique_urls": 0,
+        }
+        if row["week_end"] == week_end
+        else row
+        for row in _input_rows()
+    ]
+
+
 def _run_build_hype_indices_main(argv: list[str]) -> int:
     script_path = Path(__file__).resolve().parents[1] / "scripts/build_hype_indices.py"
     spec = importlib.util.spec_from_file_location(
@@ -155,6 +170,18 @@ def test_valid_hype_indices_match_hand_computed_values(tmp_path: Path) -> None:
     assert summary["validation_status"] == "passed"
     assert summary["hype_index_computed"] is True
     assert summary["market_cap_adjusted_hype_computed"] is True
+    assert summary["count_definition"] == "sum_of_stock_day_unique_document_counts"
+    assert summary["main_news_count_column"] == "news_count_unique_urls"
+    assert summary["matched_rows_role"] == "diagnostic_only"
+    assert summary["cross_day_url_deduplicated"] is False
+    assert (
+        summary["url_level_deduplication_required_for_future_exact_article_count"]
+        is True
+    )
+    assert summary["missing_hype_week_count"] == 0
+    assert summary["missing_hype_weeks"] == []
+    assert summary["positive_news_week_count"] == 2
+    assert summary["zero_denominator_rule"] == "mark_hype_values_missing"
 
     aaa_week_1 = panel.loc[
         panel["ticker"].eq("AAA") & panel["week_index"].eq(1)
@@ -313,22 +340,48 @@ def test_malformed_count_values_fail_validation(
         _build(tmp_path, rows=rows)
 
 
-def test_week_with_zero_total_news_fails_validation(tmp_path: Path) -> None:
-    rows = [
+def test_zero_news_week_keeps_rows_and_marks_hype_missing(tmp_path: Path) -> None:
+    panel, weekly, _, summary, _ = _build(tmp_path, rows=_zero_news_week_rows())
+
+    zero_week = panel.loc[panel["week_end"].eq("2025-04-18")]
+    assert len(zero_week) == 3
+    assert zero_week["weekly_total_news_count_unique_urls"].eq(0).all()
+    assert zero_week["raw_hype"].isna().all()
+    assert zero_week["market_cap_adjusted_hype"].isna().all()
+    assert zero_week["raw_hype_minus_market_cap_weight"].isna().all()
+    assert zero_week["is_missing_hype_week"].all()
+    assert zero_week["is_zero_news_stock_week"].all()
+
+    zero_week_summary = weekly.loc[weekly["week_end"].eq("2025-04-18")].iloc[0]
+    assert bool(zero_week_summary["is_missing_hype_week"]) is True
+    assert pd.isna(zero_week_summary["raw_hype_sum"])
+    assert summary["missing_hype_week_count"] == 1
+    assert summary["missing_hype_weeks"] == [
         {
-            **row,
-            "news_count_unique_urls": 0,
-            "matched_rows": 0,
-            "active_news_days": 0,
-            "weekly_total_news_count_unique_urls": 0,
+            "week_index": 2,
+            "week_start": "2025-04-12",
+            "week_end": "2025-04-18",
         }
-        if row["week_end"] == "2025-04-18"
-        else row
-        for row in _input_rows()
+    ]
+    assert summary["positive_news_week_count"] == 1
+    assert summary["weekly_raw_hype_sum_check"] == [
+        {
+            "week_index": 1,
+            "week_end": "2025-04-11",
+            "raw_hype_sum": 1.0,
+        }
     ]
 
-    with pytest.raises(HypeIndexError, match="positive"):
-        _build(tmp_path, rows=rows)
+
+def test_mixed_positive_and_zero_news_weeks_build_successfully(tmp_path: Path) -> None:
+    panel, _, _, summary, _ = _build(tmp_path, rows=_zero_news_week_rows())
+
+    positive_week = panel.loc[panel["week_end"].eq("2025-04-11")]
+    missing_week = panel.loc[panel["week_end"].eq("2025-04-18")]
+    assert positive_week["is_missing_hype_week"].eq(False).all()
+    assert positive_week["raw_hype"].sum() == pytest.approx(1.0)
+    assert missing_week["is_missing_hype_week"].eq(True).all()
+    assert summary["validation_status"] == "passed"
 
 
 @pytest.mark.parametrize("bad_weight", [0, -0.1])

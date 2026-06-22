@@ -86,6 +86,11 @@ If the local chunk directories still live under `data/processed/news/gdelt_pilot
 This aggregation writes local-only count tables. It does not compute a Hype Index or join market-cap weights.
 Capped GDELT probe outputs are diagnostics only; aggregation inputs must account
 for the uncapped GDELT candidate file grid before zero-filled weeks are valid.
+The current `news_count_unique_urls` definition is the sum of stock-day unique
+GDELT document counts within each stock-week. It is the main count used by the
+bounded 8-week pilot, while `matched_rows` is diagnostic only. This is not full
+ticker-week cross-day URL deduplication; exact article-level weekly counts would
+require retaining URL-level matched rows, not only `stock_day_counts.csv`.
 
 After the Goal 3A news-count panel and TEJ weekly market-cap weights both exist
 locally, build the Hype-ready input panel:
@@ -118,7 +123,8 @@ uv run python scripts/build_hype_indices.py \
 
 These outputs remain local-only under ignored `data/processed/hype_index/`
 paths. The script writes stock-week Hype Index values and summary diagnostics;
-it does not create figures, notebooks, forecasts, or portfolio results.
+zero-news weeks are retained with missing Hype values. It does not create
+figures, notebooks, forecasts, or portfolio results.
 
 ## Planned direction
 

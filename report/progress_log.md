@@ -2,12 +2,21 @@
 
 ## 2026-06-22
 
+### Goal 3D-lite methodology cleanup
+
+* Clarified the first implementation as a bounded 8-week, paper-inspired Taiwan-market weekly adaptation rather than an exact article-level or full-year replication.
+* Documented `news_count_unique_urls` as the sum of stock-day unique GDELT document counts within each stock-week, with `matched_rows` preserved as diagnostic only.
+* Documented the current limitation that full ticker-week cross-day URL deduplication cannot be retrofitted from aggregate `stock_day_counts.csv`; future exact article-level counts require retaining URL-level matched rows.
+* Updated Goal 3A and Goal 3C summaries to record count-definition metadata for later report-table work.
+* Aligned Goal 3C zero-denominator behavior with the missing-data rule: zero-news weeks remain in the panel and get missing Hype values instead of aborting the whole build.
+* No live GDELT download was run, no selected chunk changed, and no notebook or figure was created.
+
 ### Goal 3C weekly Hype Index computation
 
 * Added a local-only Goal 3C pipeline that computes weekly raw Hype Index and market-cap-adjusted Hype Index values from the Goal 3B Hype-ready input panel.
 * The implementation follows the local reference paper's core Hype Index definitions and adapts them to the project window, weekly frequency, TEJ-based fixed top-50 universe, GDELT `news_count_unique_urls`, and TEJ `weekly_market_cap_weight`.
 * `raw_hype` is computed as each stock's weekly news-count share. `market_cap_adjusted_hype` is computed as `raw_hype / weekly_market_cap_weight` and is not normalized to sum to 1.
-* The pipeline validates panel row counts, weekly news totals, market-cap weight sums, zero-news behavior, and finite nonnegative computed values before writing outputs.
+* The pipeline validates panel row counts, weekly news totals, market-cap weight sums, zero-news behavior, finite nonnegative positive-week Hype values, and missing zero-denominator Hype values before writing outputs.
 * Invalid Goal 3C pilot-window inputs now fail through controlled `HypeIndexError` / CLI `Error:` handling rather than surfacing a traceback from the shared input-panel weekly-bin validator.
 * Fractional or malformed count fields now fail validation before integer casting, so values such as `1.9` cannot be silently truncated before Hype calculation.
 * Outputs remain local-only under ignored `data/processed/hype_index/` paths. No live GDELT download was run, no notebook or figure was created, and no forecast or portfolio result was computed.
@@ -29,7 +38,7 @@
 * Hardened per-chunk stock-day validation so stale or mismatched `stock_day_counts.csv` rows outside their own chunk's `probe_summary.json` date range now fail before aggregation.
 * Hardened count reconciliation so empty, header-only, stale, or truncated `stock_day_counts.csv` files fail when they disagree with the paired `probe_summary.json` `matched_rows`. This prevents real matches from being converted into zero-news observations.
 * The first implementation window remains 2025-04-05 to 2025-05-30, exactly 8 full weeks, so the fixed top-50 panel should contain 50 × 8 = 400 stock-week rows.
-* `news_count_unique_urls` is defined as the sum of stock-day unique URL counts within each stock-week. It is not full cross-day URL deduplication because the current probe output stores daily aggregate counts rather than a URL-level table.
+* `news_count_unique_urls` is defined as the sum of stock-day unique GDELT document counts within each stock-week. It is not full cross-day URL deduplication because the current probe output stores daily aggregate counts rather than a URL-level table.
 * `matched_rows` is preserved as a diagnostic count. This step does not compute raw Hype Index, does not compute market-cap-adjusted Hype Index, and does not join TEJ weekly market-cap weights.
 * Outputs are written under ignored `data/processed/news/` paths. No live GDELT download was run, no notebook was created, and no Hype Index result has been computed.
 
