@@ -42,6 +42,27 @@ Goal 3A aggregates the completed local GDELT chunk-level `stock_day_counts.csv` 
 
 Goal 3B aligns the Goal 3A stock-week news-count panel with the TEJ weekly market-cap weights. The join key is `ticker` plus `week_end`, and the TEJ `weight_date` must fall inside the same Saturday-to-Friday bin, with weights summing to 1 for each selected week. The output uses canonical Saturday-to-Friday weekly bin labels, including `week_index`; any stale input `week_index` must match the canonical bins or the join fails. The output is a **Hype-ready input panel** under ignored `data/processed/hype_index/` paths. It includes `weekly_total_news_count_unique_urls` only as a diagnostic denominator candidate for the later raw Hype calculation; Goal 3B still does not compute `raw_hype`, `hype_index`, capitalization-adjusted Hype, or any news-count-to-weight ratio.
 
+Goal 3C computes the weekly Hype Index formulas based on the local reference paper in `references/local/arXiv-2506.06329v1`, with a Taiwan-market weekly adaptation. In the original paper, the Hype Index is defined as a daily news-attention share for the S&P 100 setting, and the Capitalization Adjusted Hype Index divides that news-attention share by market capitalization weight. In this project, the frequency is weekly, the universe is the TEJ-based fixed top-50 listed-stock universe, the window is **2025-04-05 to 2025-05-30**, the news count is `news_count_unique_urls`, and the size denominator is TEJ `weekly_market_cap_weight`.
+
+For stock \(i\) and week \(w\), the project uses:
+
+\[
+N_{i,w} = \texttt{news\_count\_unique\_urls}_{i,w}, \quad
+N_w = \sum_i N_{i,w}
+\]
+
+\[
+\text{raw\_hype}_{i,w} = \frac{N_{i,w}}{N_w}
+\]
+
+\[
+\text{market\_cap\_adjusted\_hype}_{i,w}
+= \frac{\text{raw\_hype}_{i,w}}
+{\texttt{weekly\_market\_cap\_weight}_{i,w}}
+\]
+
+`matched_rows` remains diagnostic only and is not the main news-count input. `raw_hype` sums to 1 within each week. `market_cap_adjusted_hype` is an attention-to-size ratio and is not normalized to sum to 1; a value above 1 means the stock receives more news attention than its market-cap weight, and a value below 1 means it receives less.
+
 ## Universe Source Plan
 
 Universe 的 first implementation source 是 local TEJPro manual exports。若未來取得 official 或 index-provider Taiwan 50 constituent / constituent-weight source，應另行記錄 source、as-of date、methodology 差異，並決定是否替換或對照目前的 TEJ-based top-50 proxy。若使用 ETF holdings 作為輔助來源，報告中應清楚標示它是 proxy source，而不是 index methodology 本身。

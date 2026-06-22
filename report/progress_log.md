@@ -2,6 +2,16 @@
 
 ## 2026-06-22
 
+### Goal 3C weekly Hype Index computation
+
+* Added a local-only Goal 3C pipeline that computes weekly raw Hype Index and market-cap-adjusted Hype Index values from the Goal 3B Hype-ready input panel.
+* The implementation follows the local reference paper's core Hype Index definitions and adapts them to the project window, weekly frequency, TEJ-based fixed top-50 universe, GDELT `news_count_unique_urls`, and TEJ `weekly_market_cap_weight`.
+* `raw_hype` is computed as each stock's weekly news-count share. `market_cap_adjusted_hype` is computed as `raw_hype / weekly_market_cap_weight` and is not normalized to sum to 1.
+* The pipeline validates panel row counts, weekly news totals, market-cap weight sums, zero-news behavior, and finite nonnegative computed values before writing outputs.
+* Invalid Goal 3C pilot-window inputs now fail through controlled `HypeIndexError` / CLI `Error:` handling rather than surfacing a traceback from the shared input-panel weekly-bin validator.
+* Fractional or malformed count fields now fail validation before integer casting, so values such as `1.9` cannot be silently truncated before Hype calculation.
+* Outputs remain local-only under ignored `data/processed/hype_index/` paths. No live GDELT download was run, no notebook or figure was created, and no forecast or portfolio result was computed.
+
 ### Goal 3B Hype-ready input panel join
 
 * Added a local-only Goal 3B pipeline that joins the Goal 3A stock-week GDELT news-count panel with TEJ weekly market-cap weights for the active 8-week pilot.

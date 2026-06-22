@@ -105,6 +105,21 @@ This join writes local-only Hype-ready inputs under ignored
 adds a weekly total news-count diagnostic, but it still does not compute raw
 Hype Index or market-cap-adjusted Hype Index values.
 
+After the Hype-ready input panel exists locally, compute the weekly raw Hype and
+market-cap-adjusted Hype Index outputs:
+
+```bash
+uv run python scripts/build_hype_indices.py \
+  --pilot-start-date 2025-04-05 \
+  --pilot-end-date 2025-05-30 \
+  --input-panel-file data/processed/hype_index/pilot_8w/hype_input_panel_20250405_20250530.csv \
+  --output-dir data/processed/hype_index/pilot_8w/indices
+```
+
+These outputs remain local-only under ignored `data/processed/hype_index/`
+paths. The script writes stock-week Hype Index values and summary diagnostics;
+it does not create figures, notebooks, forecasts, or portfolio results.
+
 ## Planned direction
 
 The project direction is:
