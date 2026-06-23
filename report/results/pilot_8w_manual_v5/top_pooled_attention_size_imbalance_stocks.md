@@ -1,0 +1,12 @@
+| ticker | official_chinese_name | official_english_name | industry | total_news_count_unique_urls | pooled_raw_hype | pooled_market_cap_weight | pooled_attention_size_imbalance | pooled_market_cap_adjusted_hype |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2454 | 聯發科技 | Mediatek Inc. | M23G 半導體 | 1468 | 0.2065569157 | 0.04523642971 | 0.161320486 | 4.566163091 |
+| 2317 | 鴻海精密工業 | Hon Hai Precision Ind. Co., Ltd. | M23A 電腦及週邊 | 994 | 0.1398621078 | 0.04297691748 | 0.0968851903 | 3.254354104 |
+| 2330 | 台灣積體電路製造 | Taiwan Semiconductor Manufacturing Co., | M23G 半導體 | 2961 | 0.4166314901 | 0.5119128529 | -0.09528136286 | 0.8138719075 |
+| 2357 | 華碩電腦 | Asustek Computer Inc. | M23A 電腦及週邊 | 259 | 0.03644294358 | 0.00925626969 | 0.02718667389 | 3.937109094 |
+| 2891 | 中國信託金融控股 | CTBC Financial Holding Co., Ltd. | M28L 金融控股 | 0 | 0 | 0.01644179496 | -0.01644179496 | 0 |
+| 1301 | 台灣塑膠工業 | Formosa Plastics Corporation | M13A 石化 | 127 | 0.01786970592 | 0.004766682354 | 0.01310302357 | 3.748877017 |
+| 2412 | 中華電信 | Chunghwa Telecom Co., Ltd. | M23K 通信網路 | 62 | 0.008723793443 | 0.02122344015 | -0.01249964671 | 0.4110452114 |
+| 3711 | 日月光投資控股 | ASE Technology Holding Co., Ltd. | M23G 半導體 | 11 | 0.001547769804 | 0.01290044099 | -0.01135267119 | 0.1199780539 |
+| 4938 | 和碩聯合科技 | Pegatron Corporation | M23A 電腦及週邊 | 112 | 0.01575911074 | 0.004652282421 | 0.01110682832 | 3.387393393 |
+| 2881 | 富邦金融控股 | Fubon Financial Holding Co., Ltd. | M28L 金融控股 | 88 | 0.01238215844 | 0.02326631081 | -0.01088415237 | 0.5321925997 |

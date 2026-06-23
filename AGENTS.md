@@ -4,28 +4,28 @@ Repository-wide instructions for Codex and AI-assisted contributors.
 
 ## Project goal
 
-This repository is a Quantitative Finance course project. Its likely final project topic is **Black-Litterman portfolio optimization with LLM-assisted news views**.
+This repository is a Quantitative Finance course project. The active first-phase project direction is a Taiwan-market replication and adaptation of **The Hype Index: an NLP-driven Measure of Market News Attention** (arXiv:2506.06329). The initial empirical target is to construct raw and market-cap-adjusted news-attention measures for a Taiwan 50 large-cap universe.
 
 The intended research direction is:
 
-1. study Black-Litterman, LLM-generated financial views, and news-aware time-series forecasting papers;
-2. design a literature-grounded model architecture for converting market/news context into views `P`, `Q`, and `Omega`;
-3. implement a reproducible baseline pipeline before adding live LLM or live news workflows;
-4. evaluate the approach with clear backtest assumptions and report-ready evidence.
+1. study the Hype Index paper and Taiwan-market data constraints;
+2. design a literature-grounded architecture for turning market news into stock- and sector-level news-attention indices;
+3. implement a reproducible Hype Index baseline before considering sentiment scores, prediction tests, or portfolio workflows;
+4. evaluate the approach with clear data assumptions, no look-ahead bias, and report-ready evidence.
 
-The model architecture is **not finalized yet**. Do not assume a fixed layer structure, agent structure, data schema, or LLM prompting strategy unless it is already documented in the repository. When architecture choices are unclear, add or update design notes instead of prematurely implementing a full pipeline.
+Sentiment, forecasting, LLM-assisted Black-Litterman, agentic systems, and portfolio workflows are outside the active first phase. The model architecture is **not finalized yet**. Do not assume a fixed layer structure, agent structure, data schema, or LLM prompting strategy unless it is already documented in the repository. When architecture choices are unclear, add or update design notes instead of prematurely implementing a full pipeline.
 
 This is not intended to become a production trading system, broker integration, real-money trading bot, high-frequency strategy, financial advisory product, or large MLOps platform.
 
 When goals conflict, prioritize:
 
 1. course assignments and required reading/report deliverables;
-2. literature-grounded model design;
-3. reproducible data and baseline Black-Litterman computations;
+2. literature-grounded Taiwan Hype Index design;
+3. reproducible Taiwan 50 universe, news-count, and market-cap data assumptions;
 4. clear separation between research notes, prototypes, and reusable code;
 5. small deterministic tests and smoke checks;
 6. report-ready results and limitations;
-7. live LLM/news integrations only after offline workflows are clear.
+7. sentiment, forecasting, LLM, and portfolio integrations only after a separate scope decision.
 
 ## Repository layout
 
@@ -79,11 +79,11 @@ A suitable early order is:
 2. `assignments/`, `docs/`, and `report/` placeholders for current course work;
 3. paper reading notes and architecture alternatives under `docs/`;
 4. minimal Python package and tests only when reusable code is needed;
-5. deterministic market-data sample or mocked data pipeline;
-6. baseline Black-Litterman computation without LLM calls;
-7. view-construction prototypes using fixed or mocked LLM outputs;
-8. live LLM/news API workflows only after schemas, prompts, and offline tests are documented;
-9. backtest, evaluation, figures, and report-ready summaries.
+5. documented Taiwan 50 universe and market/news data-source plan;
+6. deterministic or sampled news-count pipeline;
+7. raw and market-cap-adjusted Hype Index computation;
+8. sentiment, forecasting, or portfolio prototypes only after a separate scope decision;
+9. evaluation, figures, and report-ready summaries.
 
 Do not scaffold all future modules only because they are listed below. Create subpackages only when real code for that responsibility is added.
 
@@ -92,6 +92,7 @@ Possible target organization inside `src/quant_finance_project/`:
 ```text
 data/
 news/
+attention/
 llm/
 views/
 black_litterman/
@@ -109,7 +110,7 @@ Model design must be traceable to papers, course materials, documented assumptio
 
 Do not invent formulas, citations, empirical claims, benchmark results, dataset availability, or paper conclusions. If a method is heuristic, label it as heuristic and explain why it is being tested.
 
-For Black-Litterman work, keep these objects explicit when relevant:
+For later Black-Litterman work, keep these objects explicit when relevant:
 
 - market universe and dates;
 - return frequency and forecast horizon;
@@ -125,7 +126,20 @@ For Black-Litterman work, keep these objects explicit when relevant:
 
 Do not mix different `Omega` construction methods without documenting the rationale. For example, repeated-query LLM variance, canonical Black-Litterman choices, Idzorek-style confidence mapping, residual variance, and shrinkage variants should be implemented as separate named methods or clearly documented alternatives.
 
-The default final-project market universe should follow the reference LLM-Black-Litterman paper as closely as practical: a large-cap S&P 500 universe, preferably the top 50 S&P 500 constituents by market capitalization at the paper's selection date. If exact constituents, dates, prices, sectors, or market-cap data cannot be replicated, document deviations before running backtests. Taiwan equity data may be explored later as an extension, but it should not be the default baseline unless the project direction is explicitly changed.
+For active Taiwan Hype Index work, keep these objects explicit when relevant:
+
+- Taiwan 50 constituent universe and selection date;
+- whether current or historical constituents are used;
+- stock identifiers, Chinese and English company names, and ticker aliases;
+- industry or sector classification;
+- news source, coverage period, publication timestamp convention, and duplicate handling;
+- daily or weekly news-count frequency;
+- market capitalization source, or close price plus shares outstanding;
+- denominator conventions for stock-level and sector-level indices;
+- handling of zero-news days, missing prices, missing shares, and corporate actions;
+- realized-volatility window, event-study window, and any later return horizon.
+
+The active first-phase universe is Taiwan 50 for Hype Index replication. If a later sentiment, forecasting, or portfolio extension is resumed, document the scope and universe choice separately before implementing or comparing results.
 
 ## Data and market-data workflow
 
@@ -152,7 +166,9 @@ Use clear boundaries:
 - `data/samples/`: tiny redistributable samples for tests or examples;
 - `report/results/`: curated tables or summaries intended for the course report.
 
-## LLM, news, and prompt workflow
+## Future LLM, news, and prompt workflow
+
+This section applies only if a later approved scope adds LLM, prompt, sentiment, or Black-Litterman work. It is not part of the active Taiwan Hype Index replication phase.
 
 The LLM should not directly choose final portfolio weights. Its role is to assist view generation, uncertainty estimation, news filtering, event reasoning, or scenario analysis. Portfolio weights should come from documented Black-Litterman and optimization code.
 

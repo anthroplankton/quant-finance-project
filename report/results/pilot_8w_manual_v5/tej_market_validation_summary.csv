@@ -1,0 +1,9 @@
+section,metric,value,notes
+validation,validation_status,passed,Derived from failed_checks.
+coverage,daily_ticker_count,50,Expected selected universe size is 50.
+coverage,trading_date_count,243,One-year TEJ market background trading dates.
+coverage,daily_market_panel_rows,12150,Ticker-date rows in the processed TEJ daily panel.
+coverage,weekly_count,52,Weekly market-cap weight dates.
+coverage,weekly_market_cap_weight_rows,2600,Ticker-week rows in weekly market weights.
+date_range,daily_min_date,2025-04-01,Observed first TEJ trading date.
+date_range,daily_max_date,2026-03-31,Observed last TEJ trading date.

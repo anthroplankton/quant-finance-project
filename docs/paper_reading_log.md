@@ -1,75 +1,41 @@
 # Paper Reading Log
 
-這份文件是此專案主要論文的閱讀索引與整合筆記。此專案的暫定主題是 **news-aware LLM view generation for Black-Litterman portfolio optimization**。
+這份文件是目前第一階段的文獻閱讀索引。現階段 active first-phase direction 只基於 **The Hype Index: an NLP-driven Measure of Market News Attention**，目標是將該 paper 的 news-attention index 方法 replication / adaptation 到 Taiwan 50 universe。
 
-核心想法是將新聞、事件與 LLM reasoning 轉成 Black-Litterman 可使用的 views。Black-Litterman 負責整合 market prior 與 views，portfolio optimization 負責產生最終權重；LLM 的角色則是協助產生、解釋與校準 views。
+## Current Reading Map
 
-因此，較精確的方向可以寫成「news/event-informed LLM views -> Black-Litterman」。
+| Source | Status | Role in this project | What to borrow | Notes |
+|---|---|---|---|---|
+| `The Hype Index: an NLP-driven Measure of Market News Attention` (Cao, Wunkaew, Geman; arXiv:2506.06329) | active primary reference; local source inspected | 第一階段唯一 current reference。 | News Count-Based Hype Index、Capitalization Adjusted Hype Index、stock/sector aggregation、event and volatility analysis framing。 | 台灣版本改用 Taiwan 50 constituents，並重新處理中文 company-name matching、ticker aliases、news-source bias 與 constituent history。 |
 
-## 閱讀定位
+## Primary Reference: Hype Index
 
-| Paper | 閱讀狀態 | 在此專案中的角色 | 主要可借用內容 | 詳細筆記 | 目前疑問 |
-|---|---|---|---|---|---|
-| `LLM-Enhanced Black-Litterman Portfolio Optimization` | first-pass note revised; replication details still need verification | 最接近 Black-Litterman integration 的 baseline。它說明如何把 LLM return forecasts 轉成 $P$、$Q$、$\Omega$，再交給 BL posterior 與 optimizer。 | $P = I$ 的 absolute views、用 repeated forecasts 平均建立 $Q$、用 repeated-output variance 建立 diagonal $\Omega$、two-week rebalancing backtest。 | `docs/papers/llm_enhanced_black_litterman.md` | repeated-output variance 只衡量 self-consistency。若 LLM 穩定但錯誤，$\Omega$ 可能被低估。 |
-| `From News to Forecast` | first-pass note revised; exact data/prompt implementation still needs verification | 此專案最重要的 news-processing 參考。它處理 raw news 如何被檢索、篩選、附上 rationality，並用 prediction error 與 missed news 做 reflection。 | news retrieval、candidate news pool、Reasoning Agent、selected news rationality、Evaluation Agent、reflection loop。 | `docs/papers/from_news_to_forecast.md` | selected news 如何轉成 asset-level 或 sector-level views？reflection 應只更新 news-selection logic，還是也可用於 $\Omega$ calibration？ |
-| `Nexus` | first-pass note revised; public code/data release still needs verification | agentic view-generation architecture 的參考。它把 forecasting 拆成 contextualization、macro reasoning、micro reasoning、synthesis、calibration。 | Historical Context Agent、Macro/Micro-Reasoning Agents、Forecast Synthesizer、Calibration Agent。 | `docs/papers/nexus_time_series_forecasting.md` | macro/micro outputs 如何映射成 $Q$？是否適合產生 relative views？calibration 是否可作為 $\Omega$ 的輔助訊號？ |
+Hype Index paper 的核心想法是把新聞關注度轉成可量化的 market-attention measure。它先用新聞提及次數建立 stock-level 與 sector-level news share，再用 market capitalization weight 調整，觀察新聞曝光是否相對於經濟規模過高或過低。
 
-## 三篇論文的分工
-
-`LLM-Enhanced Black-Litterman` 說明 views 如何進入 Black-Litterman，重點是 $P$、$Q$、$\Omega$、$\pi$、$\Sigma$、$\tau$、posterior return 與 optimizer。
-
-`From News to Forecast` 說明 raw news 進入 view generation 前應如何處理，重點是 retrieval、filtering、selected news rationality 與 reflection。
-
-`Nexus` 說明 LLM reasoning layer 可以如何拆成多個 agent，重點是 context、macro reasoning、micro reasoning、synthesis 與 calibration。
-
-簡單來說，From News to Forecast 處理「哪些新聞值得用」，Nexus 處理「如何對新聞與數值資料做分層 reasoning」，LLM-Enhanced Black-Litterman 處理「如何把 LLM views 放進 BL 並產生 portfolio」。
+本專案複製的是指標邏輯，並將市場範圍改為台灣大型股：
 
 ```text
-From News to Forecast
-    -> news filtering and reflection
-
-Nexus
-    -> macro/micro reasoning and synthesis
-
-LLM-Enhanced Black-Litterman
-    -> P, Q, Omega and portfolio optimization
+financial news
+    -> company / sector matching
+    -> news counts
+    -> raw news attention share
+    -> market-cap-adjusted attention
+    -> event, volatility, and later prediction analysis
 ```
 
-## 目前的專案主線
+台灣市場版本的第一步是把 S&P 100 universe 改成 Taiwan 50 constituents。這個改動有明確研究價值：Taiwan 50 提供大型權值股範圍，台灣新聞有中文 entity matching 與產業集中度問題，且台股事件與電子業供應鏈新聞常有高度市場關注。
 
-```text
-Historical prices + market data
-        ↓
-News/event retrieval and filtering
-        ↓
-Event rationale and reflection
-        ↓
-Macro/micro LLM reasoning
-        ↓
-View Synthesizer
-        ↓
-P, Q, Omega
-        ↓
-Black-Litterman posterior return
-        ↓
-Portfolio optimization
-        ↓
-Backtest
-```
+## Archived Prior Direction
 
-其中 $P$ 是 picking matrix，$Q$ 是 view vector，$\Omega$ 是 view uncertainty matrix。第一階段仍可以先做 fixed 或 mocked views，用來確認 BL 公式、資料切分、optimizer 與 backtest 都正確；後續再把 news-aware view generation 接進同一個框架。
+Repository 中既有的 Black-Litterman、LLM view generation、news forecasting 與 Nexus-style notes 屬於 archived prior direction。它們保留作為過去閱讀紀錄與專案轉向前的設計脈絡，不是目前第一階段的 current reference material。
 
-## 實作順序和研究主軸的差別
+目前第一階段不採用 Self-Driving Portfolio paper、copied X thread、LLM-BL 架構或 multi-agent workflow 作為設計基礎。若未來要重新引入這些材料，應另開 scope，並在報告中明確說明它們與 Hype Index replication 的關係。
 
-保守的實作順序可以從 BL math and optimization baseline 開始，再加入 fixed / mocked views、paper-style repeated LLM forecasts、deterministic news-aware examples、filtered news + event rationale，以及 Nexus-style macro/micro synthesis。Live news 或 live LLM workflows 則適合放在資料管線穩定之後。
+## Current Questions
 
-這個順序是為了降低工程風險。真正的研究問題仍然是新聞與事件如何形成可用的 Black-Litterman views。
-
-## 目前仍待釐清的問題
-
-1. $Q$ 應該直接由 LLM 預測 expected return，還是由 time-series baseline 加上 news adjustment？
-2. 新聞 view 應該是 asset-level absolute view、sector-level view，還是 relative view？
-3. $\Omega$ 是否只用 repeated-output variance？如果加入 reflection error 或 calibration error，應如何清楚命名？
-4. From News to Forecast 的 reflection 應該只更新 news-selection logic，還是也可以影響 confidence？
-5. Nexus-style macro/micro reasoning 產生的是 forecast，還是應該轉成 view explanation？
-6. 如果課程時間有限，哪些部分需要實作，哪些部分只放在 report/design note？
+1. Taiwan 50 universe 要使用 current constituents，還是建立 historical constituent table？
+2. 中文新聞中的公司名、簡稱、品牌名、集團名和 ticker aliases 如何建立 matching rules？
+3. 同一篇新聞提到多家公司時，news count 要重複計入還是分攤？
+4. Hype Index 與 capitalization-adjusted Hype Index 應先用 daily 還是 weekly frequency？
+5. Realized volatility relation 應使用 contemporaneous comparison，還是先設計 lagged predictive tests？
+6. Sentiment scores 若在後續階段加入，應如何與目前的 pure attention index 分開記錄？

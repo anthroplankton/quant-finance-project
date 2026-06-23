@@ -1,0 +1,51 @@
+stock_id,ticker,official_chinese_name,official_english_name,industry,zero_week_count,nonzero_week_count,zero_week_ratio,total_news_count_unique_urls
+2383,2383,台光電子材料,"Elite Material Co., Ltd.",M23B 印刷電路板,8,0,1,0
+2884,2884,玉山金融控股,"E.SUN Financial Holding Company, Ltd.",M28L 金融控股,8,0,1,0
+2891,2891,中國信託金融控股,"CTBC Financial Holding Co., Ltd.",M28L 金融控股,8,0,1,0
+2892,2892,第一金融控股,"First Financial Holding Co., Ltd.",M28L 金融控股,8,0,1,0
+5871,5871,中租控股,Chailease Holding Company Limited,M28K 租賃,8,0,1,0
+5876,5876,上海商業儲蓄銀行,"The Shanghai Commercial & Savings Bank,",M28A 本國銀行,8,0,1,0
+2345,2345,智邦科技,Accton Technology Corp.,M23K 通信網路,7,1,0.875,1
+2883,2883,凱基金融控股,"KGI Financial Holding Co., Ltd.",M28L 金融控股,7,1,0.875,1
+2912,2912,統一超商,President Chain Store Corporation,M29A 百貨批發,7,1,0.875,1
+5880,5880,合作金庫金融控股,Taiwan Cooperative Financial Holding Co.,M28L 金融控股,7,1,0.875,1
+2887,2887,台新新光金融控股,"TS Financial Holding Co., Ltd.",M28L 金融控股,7,1,0.875,2
+2880,2880,華南金融控股,"Hua Nan Financial Holdings Co., Ltd.",M28L 金融控股,6,2,0.75,3
+2890,2890,永豐金融控股,Sinopac Financial Holdings Company Limit,M28L 金融控股,5,3,0.625,3
+2207,2207,和泰汽車,"Hotai Motor Co., Ltd.",M22X 汽車買賣,5,3,0.625,4
+2801,2801,彰化商業銀行,"Chang Hwa Commercial Bank, Ltd.",M28A 本國銀行,5,3,0.625,5
+2885,2885,元大金融控股,"Yuanta Financial Holding Co., Ltd.",M28L 金融控股,5,3,0.625,5
+1101,1101,台灣水泥,"TCC Group Holdings CO., LTD.",M11A 水泥製造,4,4,0.5,5
+2301,2301,光寶科技,Lite-On Technology Corp.,M23D 電子零組件,4,4,0.5,8
+6669,6669,緯穎科技服務,Wiwynn Corporation,M23A 電腦及週邊,3,5,0.375,8
+4904,4904,遠傳電信,"Far EasTone Telecommunications Co., Ltd.",M23K 通信網路,3,5,0.375,10
+2002,2002,中國鋼鐵,China Steel Corporation,M20A 基本金屬,3,5,0.375,11
+2603,2603,長榮海運,Evergreen Marine Corp. (Taiwan) Ltd.,M26A 海運,3,5,0.375,22
+2327,2327,國巨,Yageo Corporation,M23D 電子零組件,2,6,0.25,13
+2609,2609,陽明海運,Yang Ming Marine Transport Corp.,M26A 海運,2,6,0.25,42
+3661,3661,世芯電子,"Alchip Technologies, Limited",M23G 半導體,2,6,0.25,50
+3711,3711,日月光投資控股,"ASE Technology Holding Co., Ltd.",M23G 半導體,1,7,0.125,11
+3045,3045,台灣大哥大,"Taiwan Mobile Co., Ltd.",M23K 通信網路,1,7,0.125,20
+1216,1216,統一企業,Uni-President Enterprises Corp.,M12C 飲料乳品,1,7,0.125,22
+2615,2615,萬海航運,Wan Hai Lines Ltd.,M26A 海運,1,7,0.125,27
+2618,2618,長榮航空,EVA Airways Corporation,M26D 空運,1,7,0.125,36
+2379,2379,瑞昱半導體,Realtek Semiconductor Corporation,M23G 半導體,0,8,0,16
+2395,2395,研華,"Advantech Co., Ltd.",M23A 電腦及週邊,0,8,0,30
+6505,6505,台塑石化,Formosa Petrochemical Corp.,M13C 輕油裂解,0,8,0,30
+3034,3034,聯詠科技,Novatek Microelectronics Corp.,M23G 半導體,0,8,0,35
+3008,3008,大立光電,"Largan Precision Co., Ltd.",M23U 消費性電子,0,8,0,44
+2886,2886,兆豐金融控股,Mega Financial Holding Company Ltd.,M28L 金融控股,0,8,0,53
+1303,1303,南亞塑膠工業,Nan Ya Plastics Corporation,M13A 石化,0,8,0,58
+2412,2412,中華電信,"Chunghwa Telecom Co., Ltd.",M23K 通信網路,0,8,0,62
+2382,2382,廣達電腦,Quanta Computer Inc.,M23A 電腦及週邊,0,8,0,68
+2882,2882,國泰金融控股,"Cathay Financial Holding Co., Ltd.",M28L 金融控股,0,8,0,84
+2881,2881,富邦金融控股,"Fubon Financial Holding Co., Ltd.",M28L 金融控股,0,8,0,88
+2303,2303,聯華電子,United Microelectronics Corp.,M23G 半導體,0,8,0,91
+3231,3231,緯創資通,Wistron Corporation,M23A 電腦及週邊,0,8,0,106
+2308,2308,台達電子工業,"Delta Electronics, Inc.",M23D 電子零組件,0,8,0,110
+4938,4938,和碩聯合科技,Pegatron Corporation,M23A 電腦及週邊,0,8,0,112
+1301,1301,台灣塑膠工業,Formosa Plastics Corporation,M13A 石化,0,8,0,127
+2357,2357,華碩電腦,Asustek Computer Inc.,M23A 電腦及週邊,0,8,0,259
+2317,2317,鴻海精密工業,"Hon Hai Precision Ind. Co., Ltd.",M23A 電腦及週邊,0,8,0,994
+2454,2454,聯發科技,Mediatek Inc.,M23G 半導體,0,8,0,1468
+2330,2330,台灣積體電路製造,"Taiwan Semiconductor Manufacturing Co.,",M23G 半導體,0,8,0,2961

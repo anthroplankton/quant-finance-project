@@ -1,0 +1,4 @@
+| sample | trading_days | mean_daily_return | daily_volatility | annualized_volatility | skewness | kurtosis | min | max | quantile_5pct | quantile_95pct | cumulative_return |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| full_market_background | 243 | 0.001170819342 | 0.01301739832 | 0.206644792 | -1.134095141 | 20.8577655 | -0.09419926 | 0.08653698 | -0.013865698 | 0.015407148 | 0.3016672828 |
+| hype_trading_window | 38 | 0.0008468052632 | 0.02630183433 | 0.417528676 | -0.6985703465 | 6.956529217 | -0.09419926 | 0.08653698 | -0.029602112 | 0.029046015 | 0.01938662154 |
