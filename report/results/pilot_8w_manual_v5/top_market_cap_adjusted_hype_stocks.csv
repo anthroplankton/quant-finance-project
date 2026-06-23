@@ -1,0 +1,11 @@
+stock_id,ticker,official_chinese_name,official_english_name,industry,total_news_count_unique_urls,mean_market_cap_adjusted_hype,max_market_cap_adjusted_hype,mean_weekly_market_cap_weight
+2454,2454,聯發科技,Mediatek Inc.,M23G 半導體,1468,5.008591162,8.705739331,0.04536326682
+2357,2357,華碩電腦,Asustek Computer Inc.,M23A 電腦及週邊,259,4.13210829,6.813599983,0.009250353553
+1301,1301,台灣塑膠工業,Formosa Plastics Corporation,M13A 石化,127,3.885583434,10.20288711,0.004772805187
+4938,4938,和碩聯合科技,Pegatron Corporation,M23A 電腦及週邊,112,3.5438997,11.63470984,0.004654222745
+2317,2317,鴻海精密工業,"Hon Hai Precision Ind. Co., Ltd.",M23A 電腦及週邊,994,3.127746716,6.478589395,0.04295178031
+3231,3231,緯創資通,Wistron Corporation,M23A 電腦及週邊,106,2.195863636,5.41303573,0.006501290505
+1303,1303,南亞塑膠工業,Nan Ya Plastics Corporation,M13A 石化,58,1.649332427,2.713309388,0.005132040822
+3661,3661,世芯電子,"Alchip Technologies, Limited",M23G 半導體,50,1.553392835,7.724589095,0.004172997483
+2618,2618,長榮航空,EVA Airways Corporation,M26D 空運,36,1.214597825,6.181429656,0.004680162831
+2609,2609,陽明海運,Yang Ming Marine Transport Corp.,M26A 海運,42,1.21261878,3.599575875,0.005530690413

@@ -182,9 +182,9 @@ uv run python scripts/build_gdelt_weekly_counts.py \
   --pilot-start-date 2025-04-05 \
   --pilot-end-date 2025-05-30 \
   --universe-file data/processed/tej/top50_universe_20250331.csv \
-  --input-dir data/processed/news/gdelt_pilot_8w/chunk_20250405_20250502 \
-  --input-dir data/processed/news/gdelt_pilot_8w/chunk_20250503_20250530 \
-  --output-dir data/processed/news/gdelt_pilot_8w/weekly_counts
+  --input-dir data/processed/news/gdelt_pilot_8w_manual_v5/chunk_20250405_20250502 \
+  --input-dir data/processed/news/gdelt_pilot_8w_manual_v5/chunk_20250503_20250530 \
+  --output-dir data/processed/news/gdelt_pilot_8w_manual_v5/weekly_counts
 ```
 
 If the local chunk directories still live under `data/processed/news/gdelt_pilot_12w/`, keep that parent in the two `--input-dir` paths; the script does not assume a fixed parent directory name.
@@ -205,10 +205,10 @@ locally, build the Hype-ready input panel:
 uv run python scripts/build_hype_input_panel.py \
   --pilot-start-date 2025-04-05 \
   --pilot-end-date 2025-05-30 \
-  --news-counts-file data/processed/news/gdelt_pilot_8w/weekly_counts/stock_week_news_counts_20250405_20250530.csv \
+  --news-counts-file data/processed/news/gdelt_pilot_8w_manual_v5/weekly_counts/stock_week_news_counts_20250405_20250530.csv \
   --market-weights-file data/processed/tej/weekly_market_cap_weights_20250401_20260331.csv \
   --universe-file data/processed/tej/top50_universe_20250331.csv \
-  --output-dir data/processed/hype_index/pilot_8w
+  --output-dir data/processed/hype_index/pilot_8w_manual_v5
 ```
 
 This join writes local-only Hype-ready inputs under ignored
@@ -223,8 +223,8 @@ market-cap-adjusted Hype Index outputs:
 uv run python scripts/build_hype_indices.py \
   --pilot-start-date 2025-04-05 \
   --pilot-end-date 2025-05-30 \
-  --input-panel-file data/processed/hype_index/pilot_8w/hype_input_panel_20250405_20250530.csv \
-  --output-dir data/processed/hype_index/pilot_8w/indices
+  --input-panel-file data/processed/hype_index/pilot_8w_manual_v5/hype_input_panel_20250405_20250530.csv \
+  --output-dir data/processed/hype_index/pilot_8w_manual_v5/indices
 ```
 
 These outputs remain local-only under ignored `data/processed/hype_index/`
@@ -237,24 +237,49 @@ tables and figures:
 
 ```bash
 uv run --group report python scripts/build_hype_report_artifacts.py \
-  --hype-panel-file data/processed/hype_index/pilot_8w/indices/hype_index_panel_20250405_20250530.csv \
-  --weekly-summary-file data/processed/hype_index/pilot_8w/indices/weekly_hype_summary_20250405_20250530.csv \
-  --stock-summary-file data/processed/hype_index/pilot_8w/indices/stock_hype_summary_20250405_20250530.csv \
-  --hype-summary-json data/processed/hype_index/pilot_8w/indices/hype_index_summary_20250405_20250530.json \
+  --hype-panel-file data/processed/hype_index/pilot_8w_manual_v5/indices/hype_index_panel_20250405_20250530.csv \
+  --weekly-summary-file data/processed/hype_index/pilot_8w_manual_v5/indices/weekly_hype_summary_20250405_20250530.csv \
+  --stock-summary-file data/processed/hype_index/pilot_8w_manual_v5/indices/stock_hype_summary_20250405_20250530.csv \
+  --hype-summary-json data/processed/hype_index/pilot_8w_manual_v5/indices/hype_index_summary_20250405_20250530.json \
   --chunk-summary-json data/processed/news/gdelt_pilot_8w_manual_v5/chunk_20250405_20250502/probe_summary.json \
   --chunk-summary-json data/processed/news/gdelt_pilot_8w_manual_v5/chunk_20250503_20250530/probe_summary.json \
-  --results-dir report/results/pilot_8w \
-  --figures-dir report/figures/pilot_8w \
+  --include-market-quant \
+  --daily-market-panel-file data/processed/tej/daily_market_panel_20250401_20260331.csv \
+  --weekly-market-weights-file data/processed/tej/weekly_market_cap_weights_20250401_20260331.csv \
+  --universe-file data/processed/tej/top50_universe_20250331.csv \
+  --company-metadata-file data/processed/tej/company_metadata.csv \
+  --tej-validation-json data/processed/tej/validation_summary_20250401_20260331.json \
+  --raw-tej-return-file data/raw/tej/tej_top50_daily_adjusted_price_exrights_panel_20250401_20260331.csv \
+  --market-background-start 2025-04-01 \
+  --market-background-end 2026-03-31 \
+  --hype-trading-start 2025-04-07 \
+  --hype-trading-end 2025-05-29 \
+  --results-dir report/results/pilot_8w_manual_v5 \
+  --figures-dir report/figures/pilot_8w_manual_v5 \
   --top-n 10 \
   --figure-dpi 160
 ```
 
 This reporting step consumes existing Hype outputs and writes curated artifacts
-under `report/results/pilot_8w/` and `report/figures/pilot_8w/`. It does not
-recompute Goal 3A, Goal 3B, or Goal 3C, and it does not create the final
-notebook. The `--chunk-summary-json` inputs are optional for the script in
-general, but they are required to reproduce the current report tables that
-include GDELT acquisition diagnostics.
+under `report/results/pilot_8w_manual_v5/` and
+`report/figures/pilot_8w_manual_v5/`. It does not recompute Goal 3A, Goal 3B,
+or Goal 3C, and it does not create the final notebook. With
+`--include-market-quant`, Goal 4B adds notebook-ready one-year TEJ market
+background tables, sector-level Hype aggregation, return / volatility
+diagnostics, revised heatmap and scatter figures, and key-stock case-study
+figures. The market background period is 2025-04-01 to 2026-03-31, while the
+Hype-window TEJ trading-date comparison is 2025-04-07 to 2025-05-29; the
+2025-05-30 news date is not forced into TEJ market data. The
+`--chunk-summary-json` inputs are optional for the script in general, but they
+are required to reproduce the current report tables that include GDELT
+acquisition diagnostics.
+
+The completed manual-v5 local pilot has 400 Goal 3A stock-week news-count rows,
+400 Goal 3B Hype-ready input rows, and 400 Goal 3C Hype Index rows. All three
+validation summaries passed. The two selected GDELT chunks processed 5,372 of
+5,376 candidate files, missed 4 archive files, failed 0 files, and produced
+7,107 diagnostic matched rows. Weekly total `news_count_unique_urls` values are
+1,225, 1,343, 737, 836, 646, 808, 884, and 628.
 
 ## Planned direction
 

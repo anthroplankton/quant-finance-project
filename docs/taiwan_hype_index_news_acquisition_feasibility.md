@@ -171,13 +171,42 @@ Completed local probe summaries for the selected two chunks are:
 
 | Window | Completed | Candidate files | Files processed | Files missing | Files failed | Matched rows | Unique URLs |
 |---|---|---:|---:|---:|---:|---:|---:|
-| 2025-04-05 to 2025-05-02 | true | 2,688 | 2,686 | 2 | 0 | 1,134 | 1,097 |
-| 2025-05-03 to 2025-05-30 | true | 2,688 | 2,686 | 2 | 0 | 1,031 | 996 |
-| Combined selected pilot | true | 5,376 | 5,372 | 4 | 0 | 2,165 | 2,093 |
+| 2025-04-05 to 2025-05-02 | true | 2,688 | 2,686 | 2 | 0 | 4,141 | 3,572 |
+| 2025-05-03 to 2025-05-30 | true | 2,688 | 2,686 | 2 | 0 | 2,966 | 2,401 |
+| Combined selected manual-v5 pilot | true | 5,376 | 5,372 | 4 | 0 | 7,107 | 5,973 |
 
 The combined missing-file ratio is about 0.074%. The local summaries did not show a full-day or full-week zero-news failure. The unique URL count in the combined row is the sum of chunk-summary unique URLs. The retained pilot artifact for aggregation is `stock_day_counts.csv`, which stores daily aggregate counts rather than URL-level matched rows, so it cannot support full ticker-week cross-day URL deduplication after the fact. These outputs remain local-only under ignored `data/processed/news/` paths and should not be committed.
 
-The next local step is count aggregation, not Hype Index computation. `scripts/build_gdelt_weekly_counts.py` reads the selected chunks' `probe_summary.json` and `stock_day_counts.csv`, validates that the chunks completed without failed files or threshold failures, rejects capped probe summaries, validates that processed plus missing plus failed file counts account for the uncapped GDELT candidate file grid, reconciles `stock_day_counts.csv` `matched_rows` totals against the paired probe summary, validates that the selected chunk date ranges continuously cover the full 2025-04-05 to 2025-05-30 pilot without gaps or overlaps, rejects overlapping stock-day rows, validates tickers against the TEJ-based top-50 universe, and writes a zero-filled 50 × 8 stock-week news-count panel under ignored `data/processed/news/` paths. Capped, stale, or truncated probe outputs are useful diagnostics only and must not be used as aggregation inputs.
+The selected manual-v5 outputs have now passed the local Goal 3A / Goal 3B /
+Goal 3C pipeline. Goal 3A wrote a zero-filled 50 × 8 stock-week news-count
+panel with 400 rows and validation passed. Goal 3B joined the panel to TEJ
+weekly market-cap weights with 400 Hype-ready rows and validation passed. Goal
+3C computed raw and market-cap-adjusted Hype Index outputs with 400 rows, 8
+weeks, 50 stocks, validation passed, and zero missing Hype weeks. The weekly
+total `news_count_unique_urls` values are 1,225, 1,343, 737, 836, 646, 808,
+884, and 628.
+
+Goal 4A / 4B report artifacts now consume those completed local outputs under
+`report/results/pilot_8w_manual_v5/` and `report/figures/pilot_8w_manual_v5/`.
+Goal 4B adds one-year TEJ market-background tables, sector-level Hype
+aggregation, revised heatmap and scatter figures, return / volatility
+diagnostics, and key-stock case-study figures for notebook preparation. This is
+a reporting and visualization layer only: it does not run live GDELT downloads,
+does not recompute Goal 3A / 3B / 3C, and does not change GDELT matching or
+Hype methodology.
+
+`scripts/build_gdelt_weekly_counts.py` reads the selected chunks'
+`probe_summary.json` and `stock_day_counts.csv`, validates that the chunks
+completed without failed files or threshold failures, rejects capped probe
+summaries, validates that processed plus missing plus failed file counts account
+for the uncapped GDELT candidate file grid, reconciles `stock_day_counts.csv`
+`matched_rows` totals against the paired probe summary, validates that the
+selected chunk date ranges continuously cover the full 2025-04-05 to
+2025-05-30 pilot without gaps or overlaps, rejects overlapping stock-day rows,
+validates tickers against the TEJ-based top-50 universe, and writes a
+zero-filled 50 × 8 stock-week news-count panel under ignored
+`data/processed/news/` paths. Capped, stale, or truncated probe outputs are
+useful diagnostics only and must not be used as aggregation inputs.
 
 The original Hype Index paper counts news articles in the measurement period. This bounded 8-week pilot uses a Taiwan-market weekly adaptation in which `news_count_unique_urls` is the main count and is defined as the sum of stock-day unique GDELT document counts within each stock-week. `matched_rows` remains diagnostic only. This is not a fully deduplicated article-level weekly count: if the same `document_identifier` appears for the same ticker on multiple days in the same Saturday-to-Friday bin, the weekly count can overstate exact article-level attention. Full ticker-week URL deduplication would require retaining URL-level matched rows, not only `stock_day_counts.csv`, and is documented as a future improvement.
 

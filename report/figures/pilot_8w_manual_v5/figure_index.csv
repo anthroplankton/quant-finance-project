@@ -1,0 +1,24 @@
+filename,title,chart_type,purpose,width_px,height_px,dpi,file_size_bytes,input_rows_used,visual_quality_status
+weekly_news_counts.png,"Weekly Total News Count, Taiwan Hype Index Pilot",bar,Show total pilot news-count volume by week.,1342,742,160,44761,8,passed
+top_stock_news_counts.png,Top 10 Stocks by Total News Count,horizontal_bar,Rank stocks by total pilot news attention.,1503,872,160,89605,10,passed
+top_mean_raw_hype.png,Top 10 Stocks by Mean Raw Hype,horizontal_bar,Rank stocks by average raw Hype share.,1503,873,160,89537,10,passed
+raw_hype_heatmap_top_stocks.png,Raw Hype Heatmap for Top 10 News-Count Stocks,heatmap,Compare weekly raw Hype shares for high-news stocks.,1732,975,160,97410,80,passed
+market_cap_adjusted_hype_heatmap_top_stocks.png,Market-Cap-Adjusted Hype Heatmap for Top 10 Stocks,heatmap,Compare weekly attention-to-size ratios for stocks with high mean market-cap-adjusted Hype.,1714,975,160,100306,80,passed
+raw_hype_vs_market_cap_weight_scatter.png,Mean Raw Hype vs Mean Market-Cap Weight,scatter,Show whether average news-attention share is above or below average market-cap weight.,1336,808,160,63919,50,passed
+raw_hype_vs_market_cap_weight_scatter_zoom.png,"Mean Raw Hype vs Mean Market-Cap Weight, Lower-Left Zoom",scatter,Make the lower-left attention-versus-size cluster readable without changing the full-scale scatter.,1338,808,160,59102,49,passed
+attention_size_imbalance_top_stocks.png,Top 10 Attention-Size Imbalances,horizontal_bar,Rank stocks by the largest average attention-size imbalance.,1503,873,160,95291,10,passed
+top_mean_market_cap_adjusted_hype.png,Top 10 Stocks by Mean Market-Cap-Adjusted Hype,horizontal_bar,Rank stocks by average attention-to-size ratio.,1503,873,160,93101,10,passed
+zero_news_stock_weeks.png,Top 10 Stocks by Zero-News Weeks,horizontal_bar,Show stocks with the most zero-news weeks in the pilot.,1503,872,160,103750,10,passed
+sector_stock_count.png,Sector Stock Count,horizontal_bar,Show industry composition of the fixed top-50 universe.,1501,904,160,52295,18,passed
+sector_market_cap_weight.png,Sector Mean Market-Cap Weight,horizontal_bar,Show market-cap concentration by industry.,1501,904,160,58355,18,passed
+equal_weight_cumulative_return_hype_window.png,Equal-Weight Cumulative Return with Hype Window,line,Show one-year equal-weight market proxy with the Hype window shaded.,1661,904,160,82403,243,passed
+equal_weight_rolling_volatility_20d_hype_window.png,Equal-Weight 20-Day Rolling Volatility with Hype Window,line,Show one-year rolling volatility with the Hype window shaded.,1661,904,160,77593,243,passed
+return_distribution_full_vs_hype_window.png,Equal-Weight Return Distribution: Full Sample vs Hype Window,histogram,Compare daily return distributions for full sample and Hype window.,1501,904,160,52361,281,passed
+hype_vs_weekly_return_scatter.png,Raw Hype vs Weekly Return,scatter,Show contemporaneous descriptive relation between raw Hype and returns.,1389,905,160,78863,400,passed
+hype_vs_weekly_volatility_scatter.png,Raw Hype vs Weekly Realized Volatility,scatter,Show contemporaneous descriptive relation between raw Hype and volatility.,1389,905,160,92832,400,passed
+sector_news_attention_vs_market_cap_weight.png,Sector News Attention vs Market-Cap Weight,scatter,Compare sector news-attention share with sector size.,1390,904,160,100020,18,passed
+sector_market_cap_adjusted_hype_heatmap.png,Sector Market-Cap-Adjusted Hype by Week,heatmap,Compare weekly sector-level attention-to-size ratios.,1685,1599,160,80388,144,passed
+key_stock_case_study_2330.png,Key Stock Case Study: 2330,small_multiple,"Show weekly attention, return, and volatility for a key stock.",1628,1138,160,100536,8,passed
+key_stock_case_study_2454.png,Key Stock Case Study: 2454,small_multiple,"Show weekly attention, return, and volatility for a key stock.",1614,1138,160,105283,8,passed
+key_stock_case_study_2317.png,Key Stock Case Study: 2317,small_multiple,"Show weekly attention, return, and volatility for a key stock.",1614,1138,160,92510,8,passed
+key_stock_case_study_2357.png,Key Stock Case Study: 2357,small_multiple,"Show weekly attention, return, and volatility for a key stock.",1628,1138,160,93371,8,passed

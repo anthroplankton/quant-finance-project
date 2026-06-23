@@ -262,4 +262,31 @@ The first implementation should produce the following design-backed outputs loca
 - capitalization-adjusted Hype Index;
 - descriptive plots only.
 
-The first implementation should not include sentiment, LLM calls, prediction tests, portfolio application, live trading logic, or claims about empirical predictive performance. At the Goal 3D-lite methodology cleanup stage, the local bounded 8-week pilot pipeline is implemented, but report tables, notebooks, figures, and full-year replication remain outside this step.
+The first implementation should not include sentiment, LLM calls, prediction tests, portfolio application, live trading logic, or claims about empirical predictive performance. At the manual-v5 Goal 4A stage, the local bounded 8-week pilot pipeline has passed Goal 3A, Goal 3B, and Goal 3C validation. The pipeline remains a bounded descriptive pilot, not a full-year replication.
+
+Goal 4A adds report-ready tables and figures that summarize the already-computed manual-v5 Goal 3C Hype Index outputs under `report/results/pilot_8w_manual_v5/` and `report/figures/pilot_8w_manual_v5/`; it does not rerun news aggregation, rebuild the Hype-ready input panel, recompute Hype formulas, or create the final notebook.
+
+Goal 4B extends the same reporting layer with notebook-ready market-quant
+artifacts. It uses the one-year TEJ market background from 2025-04-01 to
+2026-03-31 together with the selected 8-week Hype main analysis. The
+Hype-window TEJ trading-date comparison is 2025-04-07 to 2025-05-29, so the
+2025-05-30 news date is not forced into TEJ market data when it is not a
+trading day. Goal 4B adds sector-level reporting aggregation, descriptive
+return / realized-volatility diagnostics, revised heatmaps and scatter figures,
+and key-stock case-study figures. It does not change the Hype formulas, does
+not replace the existing last-available-trading-day weekly market-cap weight
+convention with weekly average market cap, and does not create the final
+notebook.
+
+Manual-v5 completion facts for the selected 8-week pilot:
+
+- selected chunks: 2025-04-05 to 2025-05-02 and 2025-05-03 to 2025-05-30;
+- chunk candidate files: 2,688 + 2,688;
+- files processed: 2,686 + 2,686;
+- files missing: 2 + 2;
+- files failed: 0 + 0;
+- diagnostic matched rows: 4,141 + 2,966 = 7,107;
+- Goal 3A stock-week rows: 400, validation passed;
+- Goal 3B Hype-ready rows: 400, validation passed;
+- Goal 3C Hype Index rows: 400, validation passed, missing Hype weeks: 0;
+- weekly total `news_count_unique_urls`: 1,225, 1,343, 737, 836, 646, 808, 884, and 628.

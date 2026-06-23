@@ -1,0 +1,12 @@
+| stock_id | ticker | official_chinese_name | official_english_name | industry | total_news_count_unique_urls | nonzero_week_count | zero_week_count | mean_raw_hype | mean_market_cap_adjusted_hype |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2330 | 2330 | 台灣積體電路製造 | Taiwan Semiconductor Manufacturing Co., | M23G 半導體 | 2961 | 8 | 0 | 0.3929640991 | 0.7698814361 |
+| 2454 | 2454 | 聯發科技 | Mediatek Inc. | M23G 半導體 | 1468 | 8 | 0 | 0.2231773379 | 5.008591162 |
+| 2317 | 2317 | 鴻海精密工業 | Hon Hai Precision Ind. Co., Ltd. | M23A 電腦及週邊 | 994 | 8 | 0 | 0.1337215107 | 3.127746716 |
+| 2357 | 2357 | 華碩電腦 | Asustek Computer Inc. | M23A 電腦及週邊 | 259 | 8 | 0 | 0.03845558225 | 4.13210829 |
+| 1301 | 1301 | 台灣塑膠工業 | Formosa Plastics Corporation | M13A 石化 | 127 | 8 | 0 | 0.01834872976 | 3.885583434 |
+| 4938 | 4938 | 和碩聯合科技 | Pegatron Corporation | M23A 電腦及週邊 | 112 | 8 | 0 | 0.01647555164 | 3.5438997 |
+| 2308 | 2308 | 台達電子工業 | Delta Electronics, Inc. | M23D 電子零組件 | 110 | 8 | 0 | 0.01684078424 | 0.8655398813 |
+| 3231 | 3231 | 緯創資通 | Wistron Corporation | M23A 電腦及週邊 | 106 | 8 | 0 | 0.01425748601 | 2.195863636 |
+| 2303 | 2303 | 聯華電子 | United Microelectronics Corp. | M23G 半導體 | 91 | 8 | 0 | 0.01393442975 | 1.150005217 |
+| 2881 | 2881 | 富邦金融控股 | Fubon Financial Holding Co., Ltd. | M28L 金融控股 | 88 | 8 | 0 | 0.01318229296 | 0.5681786787 |

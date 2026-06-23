@@ -1,0 +1,19 @@
+| section | metric | value | notes |
+| --- | --- | --- | --- |
+| pilot | pilot window | 2025-04-05 to 2025-05-30 inclusive | Bounded 8-week descriptive pilot. |
+| pilot | weekly frequency | Saturday-to-Friday | Weekly bins end on Fridays. |
+| universe | universe size | 50 | TEJ-based fixed top-50 market-cap listed-stock universe. |
+| panel | expected stock-week rows | 400 | Universe size multiplied by week count. |
+| news counts | main news-count definition | sum_of_stock_day_unique_document_counts | Main column: news_count_unique_urls. |
+| news counts | matched_rows role | diagnostic_only | Diagnostic count only. |
+| news counts | cross_day_url_deduplicated | false | Current pilot is not full ticker-week URL deduplication. |
+| indices | Hype Index computed | true | Consumed from Goal 3C outputs. |
+| indices | market-cap-adjusted Hype computed | true | Attention-to-size ratio, not normalized to sum to 1. |
+| acquisition | GDELT chunk summaries supplied | true | 2 chunk summary file(s). |
+| acquisition | candidate files | 5376 | Sum of uncapped candidate files when available. |
+| acquisition | files processed | 5372 | Successful GDELT raw files processed. |
+| acquisition | files missing | 4 | HTTP 404 or missing raw archive files. |
+| acquisition | files failed | 0 | Non-missing processing failures. |
+| acquisition | missing-file ratio | 0.000744047619 | files missing divided by candidate files. |
+| acquisition | matched rows | 7107 | Diagnostic matched-row count from chunk summaries. |
+| acquisition | unique URLs | 5973 | Chunk-level unique URL diagnostics. |

@@ -2,6 +2,49 @@
 
 ## 2026-06-23
 
+### Goal 4B market quant and notebook-ready artifacts
+
+* Extended the report-artifact builder to add Goal 4B notebook-ready outputs on
+  top of the selected manual-v5 Goal 4A artifacts.
+* Added one-year TEJ market-background tables, TEJ validation summary,
+  universe and sector market-structure summaries, full-sample versus
+  Hype-window equal-weight return statistics, contemporaneous Hype / return /
+  volatility correlations, key-stock case-study rows, and sector-level Hype
+  summaries.
+* Regenerated revised Hype figures with shorter two-line week labels for
+  heatmaps, added a zoomed attention-versus-size scatter, and added an
+  attention-size imbalance chart.
+* Added market quant figures for sector structure, equal-weight cumulative
+  return, 20-day rolling volatility, return distributions, Hype versus weekly
+  return / volatility, sector Hype, and key-stock case studies for `2330`,
+  `2454`, `2317`, and `2357`.
+* Updated the Markdown notebook plan to use the final-notebook structure:
+  one-year TEJ market background plus 8-week Hype main analysis.
+* This step did not rerun live GDELT downloads, did not recompute Goal 3A,
+  Goal 3B, or Goal 3C, did not change Hype formulas or weekly market-cap weight
+  conventions, and did not create the final `.ipynb` notebook.
+
+### Manual-v5 Goal 4A report artifacts
+
+* Built report-ready artifacts for the selected manual-v5 8-week Taiwan Hype
+  Index pilot from existing Goal 3C outputs and the two manual-v5 GDELT chunk
+  summaries.
+* The Goal 4A artifacts are under `report/results/pilot_8w_manual_v5/` and
+  `report/figures/pilot_8w_manual_v5/`. Required tables, Matplotlib figures,
+  `artifact_manifest.json`, `figure_index.csv`, and
+  `figure_visual_qa_manifest.json` were generated.
+* The two selected GDELT chunks covered 2025-04-05 to 2025-05-02 and
+  2025-05-03 to 2025-05-30. They processed 5,372 of 5,376 candidate files,
+  missed 4 files, failed 0 files, and produced 7,107 diagnostic matched rows.
+* Goal 3A, Goal 3B, and Goal 3C each produced 400 rows with validation passed.
+  Goal 3C produced 8 weekly summaries, 50 stock summaries, and
+  `missing_hype_week_count` 0.
+* Weekly total `news_count_unique_urls` values are 1,225, 1,343, 737, 836, 646,
+  808, 884, and 628.
+* This reporting step did not rerun live GDELT downloads, Goal 3A, Goal 3B,
+  Goal 3C, or any prediction / sentiment / LLM / portfolio workflow, and it did
+  not create the final notebook.
+
 ### Shard candidate validation and report command fix
 
 * Fixed the remaining shard reuse issue in `scripts/probe_gdelt_raw_stream.py`: each shard now stores explicit candidate identity fields, and `--resume` / `--merge-only` validate candidate index, URL, file name, and timestamp before reuse.
@@ -84,7 +127,10 @@
 ### Goal 4A report-ready 8-week Hype artifacts
 
 * Added a reporting-only artifact builder for the 8-week Taiwan Hype Index pilot.
-* The builder consumes existing Goal 3C Hype Index outputs and writes curated tables under `report/results/pilot_8w/` plus Matplotlib PNG figures and visual-QA manifests under `report/figures/pilot_8w/`.
+* The builder consumes existing Goal 3C Hype Index outputs and writes curated
+  tables under `report/results/pilot_8w_manual_v5/` plus Matplotlib PNG figures
+  and visual-QA manifests under `report/figures/pilot_8w_manual_v5/` for the
+  selected manual-v5 run.
 * Required outputs include pipeline, weekly, top-stock, zero-news, and methodology-note tables; required figures include weekly news counts, top-stock bar charts, raw and market-cap-adjusted Hype heatmaps, and the raw-Hype-versus-market-cap-weight scatter plot.
 * The figure manifest and figure index provide objective visual-QA checks for file existence, image size, labels, and top-N label limits, but subjective aesthetics still require human review.
 * This step does not download live GDELT data, does not rerun Goal 3A, Goal 3B, or Goal 3C, does not change Hype formulas, and does not create the final notebook.
@@ -134,12 +180,14 @@
 * Revised the first implementation GDELT / Hype Index pilot from the previously planned 12 weeks to an 8-week window: 2025-04-05 to 2025-05-30 inclusive.
 * The selected window has exactly 56 calendar days and 8 full Saturday-to-Friday weekly bins, so the fixed top-50 stock-week panel should contain 50 × 8 = 400 rows before any missing-data exclusions.
 * Selected only the two completed 4-week GDELT chunks: 2025-04-05 to 2025-05-02 and 2025-05-03 to 2025-05-30.
-* Chunk 1 summary: completed=true, candidate files=2,688, files processed=2,686, files missing=2, files failed=0, matched rows=1,134, unique URLs=1,097.
-* Chunk 2 summary: completed=true, candidate files=2,688, files processed=2,686, files missing=2, files failed=0, matched rows=1,031, unique URLs=996.
-* Combined selected 8-week evidence: candidate files=5,376, files processed=5,372, files missing=4, files failed=0, missing-file ratio about 0.074%, matched rows=2,165, and chunk-summary unique URLs=2,093.
+* Manual-v5 chunk 1 summary: completed=true, candidate files=2,688, files processed=2,686, files missing=2, files failed=0, matched rows=4,141, unique URLs=3,572.
+* Manual-v5 chunk 2 summary: completed=true, candidate files=2,688, files processed=2,686, files missing=2, files failed=0, matched rows=2,966, unique URLs=2,401.
+* Combined selected manual-v5 8-week evidence: candidate files=5,376, files processed=5,372, files missing=4, files failed=0, missing-file ratio about 0.074%, matched rows=7,107, and chunk-summary unique URLs=5,973.
 * The previously planned 2025-05-31 to 2025-06-27 chunk is excluded from the first implementation because GDELT raw GKG files are almost continuously missing after `20250614180000` through `20250627234500`, with additional earlier missing files and a short missing segment around `20250612181500` to `20250612201500`.
 * The 8-week pilot remains a bounded descriptive first implementation, not a full-year replication. Avoid strong time-series inference from only 8 weekly observations.
-* GDELT outputs remain local-only under ignored `data/processed/news/` paths. No live GDELT download was run for this documentation update, no notebook was created, and no Hype Index result has been computed yet.
+* GDELT outputs remain local-only under ignored `data/processed/news/` paths. At
+  this window-selection documentation stage, no live GDELT download was run, no
+  notebook was created, and the Hype Index result had not yet been computed.
 
 ## 2026-06-21
 

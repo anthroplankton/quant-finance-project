@@ -1,0 +1,233 @@
+{
+  "artifact_set": "taiwan_hype_index_pilot_8w_manual_v5",
+  "chunk_summary_count": 2,
+  "figure_dpi": 160,
+  "figure_index_csv": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/figure_index.csv",
+  "figure_index_markdown": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/figure_index.md",
+  "figure_names": [
+    "attention_size_imbalance_top_stocks.png",
+    "equal_weight_cumulative_return_hype_window.png",
+    "equal_weight_rolling_volatility_20d_hype_window.png",
+    "hype_vs_weekly_return_scatter.png",
+    "hype_vs_weekly_volatility_scatter.png",
+    "key_stock_case_study_2317.png",
+    "key_stock_case_study_2330.png",
+    "key_stock_case_study_2357.png",
+    "key_stock_case_study_2454.png",
+    "market_cap_adjusted_hype_heatmap_top_stocks.png",
+    "raw_hype_heatmap_top_stocks.png",
+    "raw_hype_vs_market_cap_weight_scatter.png",
+    "raw_hype_vs_market_cap_weight_scatter_zoom.png",
+    "return_distribution_full_vs_hype_window.png",
+    "sector_market_cap_adjusted_hype_heatmap.png",
+    "sector_market_cap_weight.png",
+    "sector_news_attention_vs_market_cap_weight.png",
+    "sector_stock_count.png",
+    "top_mean_market_cap_adjusted_hype.png",
+    "top_mean_raw_hype.png",
+    "top_stock_news_counts.png",
+    "weekly_news_counts.png",
+    "zero_news_stock_weeks.png"
+  ],
+  "figure_visual_qa_manifest_json": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/figure_visual_qa_manifest.json",
+  "figures": {
+    "attention_size_imbalance_top_stocks.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/attention_size_imbalance_top_stocks.png",
+    "equal_weight_cumulative_return_hype_window.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/equal_weight_cumulative_return_hype_window.png",
+    "equal_weight_rolling_volatility_20d_hype_window.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/equal_weight_rolling_volatility_20d_hype_window.png",
+    "hype_vs_weekly_return_scatter.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/hype_vs_weekly_return_scatter.png",
+    "hype_vs_weekly_volatility_scatter.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/hype_vs_weekly_volatility_scatter.png",
+    "key_stock_case_study_2317.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/key_stock_case_study_2317.png",
+    "key_stock_case_study_2330.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/key_stock_case_study_2330.png",
+    "key_stock_case_study_2357.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/key_stock_case_study_2357.png",
+    "key_stock_case_study_2454.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/key_stock_case_study_2454.png",
+    "market_cap_adjusted_hype_heatmap_top_stocks.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/market_cap_adjusted_hype_heatmap_top_stocks.png",
+    "raw_hype_heatmap_top_stocks.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/raw_hype_heatmap_top_stocks.png",
+    "raw_hype_vs_market_cap_weight_scatter.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/raw_hype_vs_market_cap_weight_scatter.png",
+    "raw_hype_vs_market_cap_weight_scatter_zoom.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/raw_hype_vs_market_cap_weight_scatter_zoom.png",
+    "return_distribution_full_vs_hype_window.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/return_distribution_full_vs_hype_window.png",
+    "sector_market_cap_adjusted_hype_heatmap.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/sector_market_cap_adjusted_hype_heatmap.png",
+    "sector_market_cap_weight.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/sector_market_cap_weight.png",
+    "sector_news_attention_vs_market_cap_weight.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/sector_news_attention_vs_market_cap_weight.png",
+    "sector_stock_count.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/sector_stock_count.png",
+    "top_mean_market_cap_adjusted_hype.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/top_mean_market_cap_adjusted_hype.png",
+    "top_mean_raw_hype.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/top_mean_raw_hype.png",
+    "top_stock_news_counts.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/top_stock_news_counts.png",
+    "weekly_news_counts.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/weekly_news_counts.png",
+    "zero_news_stock_weeks.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/zero_news_stock_weeks.png"
+  },
+  "figures_dir": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5",
+  "goal_3_recomputation_performed": false,
+  "hype_panel_rows": 400,
+  "hype_summary_validation_status": "passed",
+  "hype_trading_comparison_period": {
+    "end": "2025-05-29",
+    "start": "2025-04-07"
+  },
+  "live_gdelt_downloads_run": false,
+  "market_background_period": {
+    "end": "2026-03-31",
+    "start": "2025-04-01"
+  },
+  "market_quant_included": true,
+  "methodology_notes": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/methodology_notes.md",
+  "notebook_created": false,
+  "reporting_layer": "Goal 4A + Goal 4B",
+  "reporting_layers": [
+    {
+      "description": "Hype report artifacts from existing Goal 3C outputs.",
+      "figures": [
+        "weekly_news_counts.png",
+        "top_stock_news_counts.png",
+        "top_mean_raw_hype.png",
+        "top_mean_market_cap_adjusted_hype.png",
+        "raw_hype_heatmap_top_stocks.png",
+        "market_cap_adjusted_hype_heatmap_top_stocks.png",
+        "raw_hype_vs_market_cap_weight_scatter.png",
+        "raw_hype_vs_market_cap_weight_scatter_zoom.png",
+        "attention_size_imbalance_top_stocks.png",
+        "zero_news_stock_weeks.png"
+      ],
+      "goal": "Goal 4A",
+      "tables": [
+        "pipeline_validation_summary",
+        "news_acquisition_summary",
+        "weekly_news_totals",
+        "weekly_hype_summary",
+        "top_stock_news_counts",
+        "top_raw_hype_stocks",
+        "top_market_cap_adjusted_hype_stocks",
+        "zero_news_stock_summary"
+      ]
+    },
+    {
+      "description": "Notebook-ready market quant, sector aggregation, and descriptive return / volatility artifacts.",
+      "figures": [
+        "sector_stock_count.png",
+        "sector_market_cap_weight.png",
+        "equal_weight_cumulative_return_hype_window.png",
+        "equal_weight_rolling_volatility_20d_hype_window.png",
+        "return_distribution_full_vs_hype_window.png",
+        "hype_vs_weekly_return_scatter.png",
+        "hype_vs_weekly_volatility_scatter.png",
+        "sector_news_attention_vs_market_cap_weight.png",
+        "sector_market_cap_adjusted_hype_heatmap.png",
+        "key_stock_case_study_2330.png",
+        "key_stock_case_study_2454.png",
+        "key_stock_case_study_2317.png",
+        "key_stock_case_study_2357.png"
+      ],
+      "goal": "Goal 4B",
+      "revised_figures": [
+        "raw_hype_heatmap_top_stocks.png",
+        "market_cap_adjusted_hype_heatmap_top_stocks.png",
+        "raw_hype_vs_market_cap_weight_scatter.png",
+        "raw_hype_vs_market_cap_weight_scatter_zoom.png",
+        "attention_size_imbalance_top_stocks.png"
+      ],
+      "tables": [
+        "data_source_summary",
+        "tej_market_validation_summary",
+        "universe_summary",
+        "sector_market_structure_summary",
+        "basic_return_statistics_full_vs_hype_window",
+        "hype_return_volatility_correlation_summary",
+        "key_stock_case_study_summary",
+        "sector_hype_summary",
+        "sector_weekly_hype_summary"
+      ]
+    }
+  ],
+  "results_dir": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5",
+  "stock_summary_rows": 50,
+  "table_names": [
+    "basic_return_statistics_full_vs_hype_window",
+    "data_source_summary",
+    "hype_return_volatility_correlation_summary",
+    "key_stock_case_study_summary",
+    "news_acquisition_summary",
+    "pipeline_validation_summary",
+    "sector_hype_summary",
+    "sector_market_structure_summary",
+    "sector_weekly_hype_summary",
+    "tej_market_validation_summary",
+    "top_market_cap_adjusted_hype_stocks",
+    "top_raw_hype_stocks",
+    "top_stock_news_counts",
+    "universe_summary",
+    "weekly_hype_summary",
+    "weekly_news_totals",
+    "zero_news_stock_summary"
+  ],
+  "tables": {
+    "basic_return_statistics_full_vs_hype_window": {
+      "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/basic_return_statistics_full_vs_hype_window.csv",
+      "markdown": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/basic_return_statistics_full_vs_hype_window.md"
+    },
+    "data_source_summary": {
+      "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/data_source_summary.csv",
+      "markdown": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/data_source_summary.md"
+    },
+    "hype_return_volatility_correlation_summary": {
+      "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/hype_return_volatility_correlation_summary.csv",
+      "markdown": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/hype_return_volatility_correlation_summary.md"
+    },
+    "key_stock_case_study_summary": {
+      "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/key_stock_case_study_summary.csv",
+      "markdown": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/key_stock_case_study_summary.md"
+    },
+    "news_acquisition_summary": {
+      "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/news_acquisition_summary.csv",
+      "markdown": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/news_acquisition_summary.md"
+    },
+    "pipeline_validation_summary": {
+      "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/pipeline_validation_summary.csv",
+      "markdown": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/pipeline_validation_summary.md"
+    },
+    "sector_hype_summary": {
+      "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/sector_hype_summary.csv",
+      "markdown": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/sector_hype_summary.md"
+    },
+    "sector_market_structure_summary": {
+      "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/sector_market_structure_summary.csv",
+      "markdown": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/sector_market_structure_summary.md"
+    },
+    "sector_weekly_hype_summary": {
+      "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/sector_weekly_hype_summary.csv",
+      "markdown": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/sector_weekly_hype_summary.md"
+    },
+    "tej_market_validation_summary": {
+      "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/tej_market_validation_summary.csv",
+      "markdown": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/tej_market_validation_summary.md"
+    },
+    "top_market_cap_adjusted_hype_stocks": {
+      "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/top_market_cap_adjusted_hype_stocks.csv",
+      "markdown": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/top_market_cap_adjusted_hype_stocks.md"
+    },
+    "top_raw_hype_stocks": {
+      "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/top_raw_hype_stocks.csv",
+      "markdown": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/top_raw_hype_stocks.md"
+    },
+    "top_stock_news_counts": {
+      "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/top_stock_news_counts.csv",
+      "markdown": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/top_stock_news_counts.md"
+    },
+    "universe_summary": {
+      "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/universe_summary.csv",
+      "markdown": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/universe_summary.md"
+    },
+    "weekly_hype_summary": {
+      "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/weekly_hype_summary.csv",
+      "markdown": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/weekly_hype_summary.md"
+    },
+    "weekly_news_totals": {
+      "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/weekly_news_totals.csv",
+      "markdown": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/weekly_news_totals.md"
+    },
+    "zero_news_stock_summary": {
+      "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/zero_news_stock_summary.csv",
+      "markdown": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/zero_news_stock_summary.md"
+    }
+  },
+  "top_n": 10,
+  "weekly_summary_rows": 8
+}
