@@ -67,7 +67,113 @@ For a bounded streaming feasibility probe that does not keep raw GDELT files by 
 uv run python scripts/probe_gdelt_raw_stream.py --start-date 2025-04-01 --end-date 2025-04-01 --max-files 8 --max-download-mb 50
 ```
 
-Add `--execute` only for an explicit live probe.
+Add `--execute` only for an explicit live probe. The raw-stream probe also accepts
+`--workers` for bounded file-level parallelism; the default `--workers 1`
+preserves sequential behavior, while local diagnostics can start with
+`--workers 8`, `--workers 12`, or `--workers 16`. Start with `--workers 12` or
+lower unless the machine, network, and disk budget have already been checked.
+Use `--worker-backend thread` for the default downloader/parser worker path, or
+`--worker-backend process` when CPU-bound parse / alias-match profiling shows
+that Python threads are not scaling. The process backend keeps transfer and disk
+accounting in the parent process, then parses one local temporary zip per worker
+process. Process-pool startup or submission failures are reported as controlled
+probe errors with an explicit `--worker-backend thread` fallback suggestion;
+the probe does not silently fall back because that would make timing comparisons
+ambiguous.
+Long-running live GDELT downloads should be started manually in a terminal, not
+inside Codex.
+
+For alias-review diagnostics, add audit and profiling options as needed:
+
+- `--matched-sample-size N` controls the global matched metadata sample size
+  when per-ticker sampling is not enabled.
+- `--sample-per-ticker N` writes up to `N` deterministic sample rows per ticker,
+  which helps inspect lower-volume tickers such as `2382`.
+- `--profile-performance` writes timing fields to `probe_summary.json` and a
+  `per_file_metrics.csv` file for download / parse / match bottleneck review.
+- `--shard-output-dir DIR` writes one small JSON result shard per candidate
+  GKG file, including per-file counts, timing, and matched metadata samples with
+  audit fields.
+- `--resume` reuses validated successful / missing-archive shard results and
+  recomputes missing, stale, malformed, or failed shards.
+- `--merge-only` rebuilds final outputs from existing shard results without
+  downloading or parsing files.
+
+Shard reuse is guarded by a run fingerprint. Each shard and the final
+`probe_summary.json` record the alias-content digest, alias path for audit,
+matching-semantics version, output/audit schema versions, and sample options.
+Each shard also records the expected candidate index, URL, file name, and
+timestamp, and these candidate fields are validated before reuse.
+`--resume` reuses only matching-fingerprint completed shards and recorded
+missing-archive shards; stale, malformed, or failed shards are recomputed.
+`--merge-only` fails with a controlled error if a required shard has a
+mismatched fingerprint, mismatched candidate identity, is malformed, or records
+a failed attempt, so alias-policy changes, copied shards, and stale failures
+cannot be silently mixed.
+
+The matched metadata sample includes `matched_alias`, `matched_alias_type`,
+`matched_field_name`, and a bounded `matched_text_excerpt` from the allowed GKG
+content / entity / name fields. It does not use URL, source, or
+`DocumentIdentifier` metadata for matching and does not store article text.
+
+The raw probe uses a token-to-candidate alias matcher index for acquisition
+speed. Latin aliases are indexed by a deterministic anchor token and still
+confirmed with the existing token-boundary regex; CJK aliases can be selected by
+their first CJK character and still use substring confirmation. This reduces
+per-row alias scanning without changing the matching scope or count semantics.
+On the bounded 2025-05-14 manual v5 process-backend benchmark, the 96-file run
+improved from 164.295 seconds before the index to 119.105 seconds after it,
+with the same stock-day counts, matched-row total, and unique-URL total.
+
+The selected alias file for the next full 8-week rerun is the local manual v5
+allowlist:
+
+```text
+data/processed/news/aliases/top50_alias_allowlist_gdelt_manual_reviewed_v5_recommended.csv
+```
+
+Manual v5 keeps the v4 TSMC / MediaTek / Hon Hai / Foxconn / ASUS / Quanta
+Computer decisions and disables only the additional bare aliases with clear
+false-positive evidence: `Largan`, `Yuanta`, and `Novatek`. Use the process
+backend for the next selected 8-week rerun:
+
+```bash
+uv run python scripts/probe_gdelt_raw_stream.py \
+  --execute \
+  --start-date 2025-04-05 \
+  --end-date 2025-05-02 \
+  --max-files 2688 \
+  --max-download-mb 20000 \
+  --disk-limit-gb 5 \
+  --max-missing-files 20 \
+  --workers 8 \
+  --worker-backend process \
+  --profile-performance \
+  --matched-sample-size 5000 \
+  --sample-per-ticker 50 \
+  --aliases-file data/processed/news/aliases/top50_alias_allowlist_gdelt_manual_reviewed_v5_recommended.csv \
+  --output-dir data/processed/news/gdelt_pilot_8w_manual_v5/chunk_20250405_20250502 \
+  --shard-output-dir data/processed/news/gdelt_pilot_8w_manual_v5/shards_20250405_20250502 \
+  --resume
+
+uv run python scripts/probe_gdelt_raw_stream.py \
+  --execute \
+  --start-date 2025-05-03 \
+  --end-date 2025-05-30 \
+  --max-files 2688 \
+  --max-download-mb 20000 \
+  --disk-limit-gb 5 \
+  --max-missing-files 20 \
+  --workers 8 \
+  --worker-backend process \
+  --profile-performance \
+  --matched-sample-size 5000 \
+  --sample-per-ticker 50 \
+  --aliases-file data/processed/news/aliases/top50_alias_allowlist_gdelt_manual_reviewed_v5_recommended.csv \
+  --output-dir data/processed/news/gdelt_pilot_8w_manual_v5/chunk_20250503_20250530 \
+  --shard-output-dir data/processed/news/gdelt_pilot_8w_manual_v5/shards_20250503_20250530 \
+  --resume
+```
 
 After the two selected 8-week pilot chunks exist locally, build the zero-filled stock-week news-count panel with explicit input directories:
 
@@ -125,6 +231,30 @@ These outputs remain local-only under ignored `data/processed/hype_index/`
 paths. The script writes stock-week Hype Index values and summary diagnostics;
 zero-news weeks are retained with missing Hype values. It does not create
 figures, notebooks, forecasts, or portfolio results.
+
+After the Goal 3C outputs exist locally, build the report-ready 8-week pilot
+tables and figures:
+
+```bash
+uv run --group report python scripts/build_hype_report_artifacts.py \
+  --hype-panel-file data/processed/hype_index/pilot_8w/indices/hype_index_panel_20250405_20250530.csv \
+  --weekly-summary-file data/processed/hype_index/pilot_8w/indices/weekly_hype_summary_20250405_20250530.csv \
+  --stock-summary-file data/processed/hype_index/pilot_8w/indices/stock_hype_summary_20250405_20250530.csv \
+  --hype-summary-json data/processed/hype_index/pilot_8w/indices/hype_index_summary_20250405_20250530.json \
+  --chunk-summary-json data/processed/news/gdelt_pilot_8w_manual_v5/chunk_20250405_20250502/probe_summary.json \
+  --chunk-summary-json data/processed/news/gdelt_pilot_8w_manual_v5/chunk_20250503_20250530/probe_summary.json \
+  --results-dir report/results/pilot_8w \
+  --figures-dir report/figures/pilot_8w \
+  --top-n 10 \
+  --figure-dpi 160
+```
+
+This reporting step consumes existing Hype outputs and writes curated artifacts
+under `report/results/pilot_8w/` and `report/figures/pilot_8w/`. It does not
+recompute Goal 3A, Goal 3B, or Goal 3C, and it does not create the final
+notebook. The `--chunk-summary-json` inputs are optional for the script in
+general, but they are required to reproduce the current report tables that
+include GDELT acquisition diagnostics.
 
 ## Planned direction
 

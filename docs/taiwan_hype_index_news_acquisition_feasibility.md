@@ -181,37 +181,160 @@ The next local step is count aggregation, not Hype Index computation. `scripts/b
 
 The original Hype Index paper counts news articles in the measurement period. This bounded 8-week pilot uses a Taiwan-market weekly adaptation in which `news_count_unique_urls` is the main count and is defined as the sum of stock-day unique GDELT document counts within each stock-week. `matched_rows` remains diagnostic only. This is not a fully deduplicated article-level weekly count: if the same `document_identifier` appears for the same ticker on multiple days in the same Saturday-to-Friday bin, the weekly count can overstate exact article-level attention. Full ticker-week URL deduplication would require retaining URL-level matched rows, not only `stock_day_counts.csv`, and is documented as a future improvement.
 
-Regenerate the local alias allowlist first:
+The selected alias file for the next full selected 8-week rerun is the local
+manual v5 file:
 
-```bash
-uv run python scripts/build_top50_alias_table.py --profile expanded_reviewed
+```text
+data/processed/news/aliases/top50_alias_allowlist_gdelt_manual_reviewed_v5_recommended.csv
 ```
 
-Then review dry runs by omitting `--execute`. When ready for a bounded live run, use separate ignored output directories so chunk outputs do not overwrite one another:
+The v2 / v3 / v4 diagnostic comparison used the same 2025-05-10 to 2025-05-16
+window with audit-enabled GDELT probe outputs. Manual v2 fixed the severe TSMC
+undercount but introduced broad false positives, including `2382` matches for
+Quanta Services / unrelated Quanta contexts and broad `2892` First Financial
+matches. Manual v3 reduced those risks: `2382` fell from 46 to 24 and `2892`
+fell from 29 to 0, but Quanta Computer matching remained broader than ideal.
+Manual v4 kept TSMC fixed at 232, MediaTek at 176, and Hon Hai / Foxconn at
+132; Latin token-boundary matching removed the ASUS false positives; `2382`
+fell to 13 with sampled evidence showing `Quanta Computer Inc` in GKG
+Organizations; and `2892` remained 0.
+
+Manual v5 is the selected conservative precision-oriented alias set. It is
+based on v4 and disables only three additional bare aliases with clear
+false-positive evidence: `Largan` for `3008`, `Yuanta` for `2885`, and
+`Novatek` for `3034`. The precise variants remain enabled, including `Largan
+Precision`, `Yuanta Financial`, `Yuanta Financial Holding`, `Novatek
+Microelectronics`, and the corresponding Chinese names. Manual v5 also keeps
+the v4 decisions for TSMC, MediaTek, Hon Hai / Foxconn, ASUS with Latin
+token-boundary matching, and `Quanta Computer Inc` / `Quanta Computer Inc.`.
+
+Review dry runs by omitting `--execute`. When ready for a bounded live run, use separate ignored output directories so chunk outputs do not overwrite one another:
 
 ```bash
 uv run python scripts/probe_gdelt_raw_stream.py \
   --execute \
   --start-date 2025-04-05 \
   --end-date 2025-05-02 \
-  --aliases-file data/processed/news/aliases/top50_alias_allowlist_gdelt_expanded_reviewed.csv \
   --max-files 2688 \
   --max-download-mb 20000 \
   --disk-limit-gb 5 \
-  --output-dir data/processed/news/gdelt_pilot_8w/chunk_20250405_20250502
+  --max-missing-files 20 \
+  --workers 8 \
+  --worker-backend process \
+  --profile-performance \
+  --matched-sample-size 5000 \
+  --sample-per-ticker 50 \
+  --aliases-file data/processed/news/aliases/top50_alias_allowlist_gdelt_manual_reviewed_v5_recommended.csv \
+  --output-dir data/processed/news/gdelt_pilot_8w_manual_v5/chunk_20250405_20250502 \
+  --shard-output-dir data/processed/news/gdelt_pilot_8w_manual_v5/shards_20250405_20250502 \
+  --resume
 
 uv run python scripts/probe_gdelt_raw_stream.py \
   --execute \
   --start-date 2025-05-03 \
   --end-date 2025-05-30 \
-  --aliases-file data/processed/news/aliases/top50_alias_allowlist_gdelt_expanded_reviewed.csv \
   --max-files 2688 \
   --max-download-mb 20000 \
   --disk-limit-gb 5 \
-  --output-dir data/processed/news/gdelt_pilot_8w/chunk_20250503_20250530
+  --max-missing-files 20 \
+  --workers 8 \
+  --worker-backend process \
+  --profile-performance \
+  --matched-sample-size 5000 \
+  --sample-per-ticker 50 \
+  --aliases-file data/processed/news/aliases/top50_alias_allowlist_gdelt_manual_reviewed_v5_recommended.csv \
+  --output-dir data/processed/news/gdelt_pilot_8w_manual_v5/chunk_20250503_20250530 \
+  --shard-output-dir data/processed/news/gdelt_pilot_8w_manual_v5/shards_20250503_20250530 \
+  --resume
 ```
 
 All GDELT outputs from these commands remain local-only under ignored `data/processed/news/` paths. They should not be committed.
+
+For local manual diagnostics or a later selected-chunk rerun, the probe can use
+bounded file-level parallelism with `--workers`. The default `--workers 1`
+preserves the original sequential behavior. Recommended local starting values
+are `--workers 8`, `--workers 12`, or `--workers 16`; start with 12 or lower
+unless local network, CPU, and disk pressure have already been checked. The
+default `--worker-backend thread` path keeps the existing downloader/parser
+behavior. The optional `--worker-backend process` path is for CPU-bound parsing
+and alias-matching diagnostics: the parent process downloads each bounded raw
+zip and tracks transfer / disk accounting, then a process worker parses exactly
+one local temporary zip and returns metadata-only matches and timing metrics.
+Process-pool startup or submission failures are controlled probe errors that
+suggest `--worker-backend thread` as a fallback; the code does not silently
+switch backends because benchmark interpretation depends on the configured
+backend.
+Parallel mode is an acquisition-speed setting only: it does not change the
+alias policy, GKG matching scope, stock-day counting definition, weekly
+aggregation method, or Hype Index methodology. Long-running live GDELT downloads
+should be launched manually in a terminal rather than inside Codex.
+
+The current matcher also uses a token-to-candidate alias index as a narrow
+acquisition-speed optimization. Latin aliases are indexed by a deterministic
+anchor token and still confirmed by the token-boundary regex, so `ASUS` still
+does not match strings such as `Caucasus`, `Pegasus`, `Argus`, or `nexus`.
+Phrase aliases such as `Taiwan Semiconductor Manufacturing` still require the
+full phrase regex confirmation. CJK aliases may be selected by first CJK
+character but are still confirmed with substring matching. This reduces alias
+scanning inside each GKG content / entity / name field without changing matching
+scope, alias policy, stock-day count semantics, or Hype methodology.
+
+Bounded 2025-05-14 manual v5 process-backend benchmarks show the impact:
+
+| Files | Workers | Backend | Elapsed seconds | Download seconds | Parse seconds | Alias-match seconds | Matched rows | Unique URLs |
+|---:|---:|---|---:|---:|---:|---:|---:|---:|
+| 12 | 8 | process | 13.963 | 12.031 | 29.040 | 13.651 | 14 | 4 |
+| 24 | 8 | process | 20.231 | 18.173 | 60.370 | 28.691 | 21 | 11 |
+| 96 | 8 | process | 119.105 | 103.206 | 594.855 | 283.456 | 153 | 117 |
+
+The comparable pre-index 96-file process benchmark completed in 164.295 seconds
+with the same matched-row and unique-URL totals; alias-match time fell from
+623.668 seconds to 283.456 seconds. The remaining bottleneck is still GKG
+decompression / CSV scanning plus confirmed alias matching, not final merging.
+
+The probe also supports audit and performance options before any full selected
+8-week rerun. `matched_metadata_sample.csv` now records the exact
+`matched_alias`, source `matched_alias_type` from the alias table when present,
+the allowed GKG `matched_field_name`, and a bounded `matched_text_excerpt`
+around the alias. The excerpt is taken only from content / entity / name fields
+used for matching; URL, source, `DocumentIdentifier`, dates, and record IDs
+remain excluded from matching evidence. These audit fields are for alias review
+only and do not change `matched_rows`, `unique_urls`, or stock-day counts.
+
+`--matched-sample-size` preserves the previous global sample behavior by
+default. `--sample-per-ticker` can instead keep up to a fixed number of
+deterministic sample rows per ticker so lower-volume tickers are visible in
+manual review.
+
+`--profile-performance` writes per-file timing fields to `probe_summary.json`
+and `per_file_metrics.csv`, including elapsed, download, parse, and match time
+summaries. The current parser streams through `zipfile`, so decompression is not
+fully separable from parse time and is reported as a separate zero field where
+it cannot be isolated.
+
+`--shard-output-dir` enables a per-file shard workflow. Each candidate GKG file
+writes one small JSON shard with status, counts, timing metrics, and bounded
+matched metadata sample rows. Shards are written atomically through a temporary
+file and then renamed. Each shard records a run fingerprint that includes the
+alias-content digest, alias path for audit, matching-semantics version,
+output/audit schema versions, sample options, and explicit candidate identity
+fields: candidate index, URL, file name, and timestamp. `--resume` skips only
+completed shards and recorded missing-archive shards whose fingerprint and
+candidate identity match the current run; failed, malformed, copied, or stale
+shards are recomputed.
+`--merge-only` downloads nothing and rebuilds
+`probe_summary.json`, `matched_metadata_sample.csv`, `stock_day_counts.csv`,
+and optional `per_file_metrics.csv` from existing shards, but it fails with a
+controlled error if any required shard has a mismatched fingerprint, mismatched
+candidate identity, is malformed, or records a failed attempt. This is an
+auditability and acquisition-speed workflow, not a methodology change.
+
+The one-week manual v5 process-backend diagnostic for 2025-05-10 to 2025-05-16
+completed successfully with 672 of 672 candidate files processed, no missing or
+failed files, 808 matched rows, 624 global unique URLs, and about 615.3 seconds
+elapsed with `--workers 8`. This supports keeping manual v5 and the current
+process-backend plus indexed-matcher workflow for the next selected 8-week
+rerun.
 
 ## Fallback Route
 
@@ -253,12 +376,13 @@ The next implementation step is a streaming probe, implemented in `scripts/probe
 
 - dry-run is the default;
 - live requests require explicit `--execute`;
-- one compressed GKG zip file is downloaded and processed at a time;
+- compressed GKG zip files are processed through a bounded worker pool, with
+  `--workers 1` preserving the original one-file-at-a-time behavior;
 - temporary raw zip files are deleted immediately unless `--keep-raw` is set;
 - only metadata-only outputs are written under ignored `data/processed/news/` or `data/raw/news/` paths;
 - article full text is not stored.
 
-This reduces peak disk usage because the local machine does not need to retain the full raw GDELT year. It does not reduce total network transfer. A one-year scan would still need to read every selected compressed GKG file over the network, so the estimated full-window compressed transfer remains large even when final stored outputs are small.
+This reduces peak disk usage because the local machine does not need to retain the full raw GDELT year. Bounded parallelism can reduce elapsed wall-clock time for local diagnostics, but it does not reduce total network transfer. A one-year scan would still need to read every selected compressed GKG file over the network, so the estimated full-window compressed transfer remains large even when final stored outputs are small.
 
 Recommended escalation sequence:
 
@@ -270,6 +394,12 @@ Recommended escalation sequence:
 
 The CLI hard cap allows up to 3,500 candidate GKG files, enough for a 30-day month-scale probe at 96 files per day. A full-window run of roughly 35,040 files is intentionally rejected by this cap. Live execution still requires explicit `--execute`, remains bounded by `--max-download-mb` for network transfer and `--disk-limit-gb` for local probe storage, and deletes raw zip files unless `--keep-raw` is selected. If the local storage budget would be exceeded during a raw download, the probe stops with `completed=false` and records `disk_limit_gb_exceeded` in the summary.
 
+`--workers` must be a positive integer and is capped at 32. The cap is
+intentional so a local run cannot accidentally create an unbounded number of
+parallel downloads. The summary records the configured worker count, and the
+main process merges worker results deterministically before writing
+`matched_metadata_sample.csv`, `stock_day_counts.csv`, and `probe_summary.json`.
+
 Occasional missing GDELT raw archive files are treated as a data-source limitation rather than a transient download failure. If a candidate raw GKG URL returns HTTP 404, the probe records it under `missing_files`, increments `files_missing`, skips retries for that URL, and continues to the next candidate file. Missing files are not counted as successfully processed files and do not contribute to `compressed_bytes_processed_successful`. The default `--max-missing-files 10` threshold allows a small number of archive gaps in a chunk; if the threshold is exceeded, the probe stops with `completed=false` and records `missing_file_threshold_exceeded`. Missing-file counts and ratios should be reported with any pilot-window results.
 
 The probe writes:
@@ -277,6 +407,10 @@ The probe writes:
 - `probe_summary.json`;
 - `matched_metadata_sample.csv`;
 - `stock_day_counts.csv`.
+
+When `--profile-performance` is enabled, it also writes
+`per_file_metrics.csv`. When `--shard-output-dir` is enabled, it writes one
+per-candidate JSON shard under that ignored directory.
 
 The summary records files attempted, processed, and failed; download attempts; retry count; matched rows; unique URLs; output file size; elapsed seconds; estimated full-window download size; and whether streamed full-year processing appears feasible under the configured disk limit. That feasibility flag is a disk-footprint signal only; it does not mean the full-year network transfer is small.
 

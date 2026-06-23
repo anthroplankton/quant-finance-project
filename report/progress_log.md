@@ -1,6 +1,93 @@
 # Progress Log
 
+## 2026-06-23
+
+### Shard candidate validation and report command fix
+
+* Fixed the remaining shard reuse issue in `scripts/probe_gdelt_raw_stream.py`: each shard now stores explicit candidate identity fields, and `--resume` / `--merge-only` validate candidate index, URL, file name, and timestamp before reuse.
+* `--resume` recomputes shards whose candidate identity does not match the current candidate list. `--merge-only` rejects mismatched-candidate shards with a controlled `GdeltRawStreamError`.
+* Updated the README Goal 4A artifact command to include the two manual-v5 GDELT chunk `probe_summary.json` inputs via `--chunk-summary-json`, so the documented command can reproduce report tables that include acquisition diagnostics.
+* Manual v5 remains selected. No alias file was changed, no manual v6 alias file was created, no live GDELT download was run, no full one-week or 8-week rerun was run, no Goal 3A / Goal 3B / Goal 3C / Goal 4A command was run, and no report artifacts were regenerated.
+
+### Failed-shard resume reliability fix
+
+* Fixed the remaining shard/resume review issue in `scripts/probe_gdelt_raw_stream.py`: `--resume` now reuses only matching-fingerprint completed shards and recorded missing-archive shards. Failed or malformed shards are scheduled again and overwritten atomically only after the new attempt completes.
+* `--merge-only` now rejects failed or malformed shard results with controlled `GdeltRawStreamError` messages instead of silently merging stale failures.
+* Manual v5 remains the selected alias file. No alias file was changed, no manual v6 alias file was created, no live GDELT download was run, no full one-week or 8-week rerun was run, and no Goal 3A / Goal 3B / Goal 3C / Goal 4A output was recomputed.
+
+### GDELT probe review fixes before full rerun
+
+* Fixed two review issues in `scripts/probe_gdelt_raw_stream.py` before the full selected 8-week rerun.
+* Added shard provenance validation: each shard and `probe_summary.json` now record a run fingerprint with alias-content digest, alias path for audit, matching-semantics version, output/audit schema versions, and sample options. `--resume` reuses only matching-fingerprint reusable shards and recomputes stale shards; `--merge-only` fails with a controlled error on mismatched shards.
+* Added controlled process-backend startup/submission errors. If the process pool cannot start or accept work, the probe raises a controlled error that suggests `--worker-backend thread`; it does not silently fall back from process to thread.
+* Manual v5 remains the selected alias file. The one-week v5 process-backend diagnostic for 2025-05-10 to 2025-05-16 completed successfully with 672 / 672 candidate files processed, no missing or failed files, 808 matched rows, 624 global unique URLs, and about 615.3 seconds elapsed with `--workers 8`.
+* No alias file was changed, no manual v6 alias file was created, no full one-week diagnostic was rerun, no full 8-week pilot rerun was run, and no Goal 3A / Goal 3B / Goal 3C / Goal 4A output was recomputed.
+
+### GDELT raw probe indexed matcher benchmark
+
+* Added a token-to-candidate alias matcher index to reduce per-row alias scanning in the GDELT raw streaming probe. Latin aliases are selected by deterministic anchor tokens and still confirmed with token-boundary regex; CJK aliases are selected by first CJK character when possible and still confirmed with substring matching.
+* Preserved the existing matching scope: only GKG content / entity / name fields are matched, while URL / source / `DocumentIdentifier` metadata remains excluded. Manual v5 alias policy was not changed and no manual v6 alias file was created.
+* Re-ran bounded live benchmarks only for 2025-05-14 under `data/processed/news/perf_diagnostics/` with manual v5, `--workers 8`, and `--worker-backend process`: 12 files completed in 13.963 seconds, 24 files completed in 20.231 seconds, and 96 files completed in 119.105 seconds.
+* The comparable pre-index 96-file process benchmark took 164.295 seconds. The indexed matcher kept 153 matched rows and 117 unique URLs, with identical `stock_day_counts.csv` for the comparable 96-file output; alias-match time fell from 623.668 seconds to 283.456 seconds.
+* Updated the documented future full selected 8-week rerun commands to use manual v5 with `--matched-sample-size 5000`, `--sample-per-ticker 50`, shard output, profiling, process workers, and `--resume`.
+* No one-week diagnostic was run, no full 8-week pilot rerun was run, no Goal 3A / Goal 3B / Goal 3C / Goal 4A output was recomputed, and no notebook or figure was created.
+
+### Bounded GDELT probe performance benchmark
+
+* Ran bounded live GDELT performance benchmarks only for 2025-05-14 under `data/processed/news/perf_diagnostics/`; no one-week diagnostic and no 8-week pilot rerun was executed.
+* The first 12-file, 12-worker thread run was interrupted after it produced no completed-file progress within the initial observation window, which exposed that terminal quietness can occur while the first in-flight worker wave is still running.
+* A completed 12-file, one-worker baseline showed the bottleneck was alias matching / parsing, not download: 264.655 seconds elapsed, 11.972 seconds downloading, 252.663 seconds parsing, and 237.786 seconds in alias matching.
+* Optimized the probe by preparing alias matchers once per parsed file and casefolding each GKG match field once per row, preserving CJK substring matching, Latin token-boundary matching, and exclusion of URL / source / `DocumentIdentifier` metadata from matching.
+* The same 12-file, one-worker benchmark after the optimization completed in 51.203 seconds with identical `stock_day_counts.csv` and `matched_metadata_sample.csv`; alias-match time fell to 23.710 seconds.
+* Additional optimized 12-file thread benchmarks completed cleanly with identical counts: workers=4 completed in 47.314 seconds and workers=12 completed in 46.563 seconds. The small wall-clock gain from threads suggests remaining parsing work is CPU-bound under Python threads.
+* The optimized 24-file, 12-worker benchmark completed cleanly in 87.560 seconds, with 24 files processed, no missing files, no failed files, 21 matched rows, and 11 unique URLs.
+* No alias file was modified, no manual v5 alias file was created, no Goal 3A / Goal 3B / Goal 3C / Goal 4A output was recomputed, and no notebook or figure was created.
+
+### GDELT raw probe process backend benchmark
+
+* Added `--worker-backend process` as a bounded process-pool parse / match option for CPU-bound GDELT raw probe diagnostics. The parent process still downloads each raw zip and owns transfer / disk accounting; parser processes receive one local temporary zip path each and return metadata-only matches and metrics.
+* Kept `--worker-backend thread` as the default path and preserved deterministic candidate-order merging, match-audit fields, `--sample-per-ticker`, and shard / resume / merge-only behavior.
+* Re-ran bounded live benchmarks only for 2025-05-14 under `data/processed/news/perf_diagnostics/`: 12 files with thread workers=12 completed in 59.448 seconds; 12 files with process workers=4 completed in 26.099 seconds; 12 files with process workers=8 completed in 19.454 seconds.
+* The matching 12-file thread and process outputs produced identical `stock_day_counts.csv` and identical `matched_metadata_sample.csv`, with 14 matched rows and 4 unique URLs.
+* The 24-file process workers=8 benchmark completed in 27.058 seconds, with 24 files processed, 0 missing, 0 failed, 21 matched rows, and 11 unique URLs.
+* The capped 96-file process workers=8 benchmark completed in 164.295 seconds, with all 96 files processed, 0 missing, 0 failed, 153 matched rows, and 117 unique URLs.
+* This change does not modify alias files, does not create a manual v5 alias file, does not change matching scope or Hype methodology, does not run a full one-week diagnostic, and does not run the 8-week pilot.
+
+### Manual v5 alias decision for selected 8-week rerun
+
+* Verified the local manual v5 alias file exists and loads through the GDELT raw probe CLI: `data/processed/news/aliases/top50_alias_allowlist_gdelt_manual_reviewed_v5_recommended.csv`.
+* Manual v5 is selected for the next full selected 8-week GDELT rerun. It is a conservative precision-oriented alias set based on v4.
+* The v2 / v3 / v4 comparison used the same 2025-05-10 to 2025-05-16 diagnostic window. v2 fixed the TSMC undercount but had broad false positives for `2382` Quanta and `2892` First Financial; v3 reduced `2382` from 46 to 24 and `2892` from 29 to 0; v4 kept `2330` TSMC at 232, `2454` MediaTek at 176, `2317` Hon Hai / Foxconn at 132, fixed ASUS substring false positives through Latin token-boundary matching, reduced `2382` to 13, and kept `2892` at 0.
+* Manual v5 keeps the v4 TSMC, MediaTek, Hon Hai / Foxconn, ASUS, and Quanta Computer decisions. It disables only three additional bare aliases with clear false-positive evidence: `Largan` for `3008`, `Yuanta` for `2885`, and `Novatek` for `3034`, while keeping precise variants such as `Largan Precision`, `Yuanta Financial`, `Yuanta Financial Holding`, and `Novatek Microelectronics`.
+* The GDELT probe code still preserves Latin token-boundary matching, CJK substring matching, URL / source / `DocumentIdentifier` exclusion from matching, matched audit fields, performance profiling, process backend support, and shard / resume / merge-only support.
+* No full 8-week GDELT rerun was run, no Goal 3A / Goal 3B / Goal 3C / Goal 4A output was recomputed, and no notebook or figure was created.
+
 ## 2026-06-22
+
+### GDELT raw probe audit and performance diagnostics
+
+* Added match-audit fields to the GDELT raw streaming probe metadata sample: `matched_alias`, `matched_alias_type`, `matched_field_name`, and bounded `matched_text_excerpt`.
+* Added deterministic sample controls through `--matched-sample-size` and `--sample-per-ticker` so low-volume tickers can be reviewed without changing count semantics.
+* Added `--profile-performance` timing summaries and `per_file_metrics.csv` for per-file elapsed, download, parse, and match-time diagnosis.
+* Added optional per-file JSON shard output with `--shard-output-dir`, plus `--resume` and `--merge-only` workflows for interrupted diagnostics.
+* Replaced batch-at-a-time worker scheduling with a continuously fed bounded executor while preserving deterministic final aggregation in candidate-file order.
+* This update keeps manual v4 alias policy unchanged, does not create a v5 alias file, does not run live GDELT downloads, does not recompute Goal 3A, Goal 3B, Goal 3C, or Goal 4A outputs, and does not create a notebook or figure.
+
+### GDELT raw probe bounded parallelism
+
+* Added bounded file-level worker support to `scripts/probe_gdelt_raw_stream.py` through `--workers`, defaulting to `1` to preserve the original sequential execution path.
+* The worker pool processes independent compressed GKG zip files, then the main process merges metadata-only matches and stock-day counts deterministically into the existing output files.
+* The change is for local acquisition speed only. It does not change GDELT alias policy, matching scope, count definitions, weekly aggregation, or Hype Index formulas.
+* Added synthetic offline tests comparing `--workers 1` with `--workers 4`, validating deterministic count output, parallel HTTP 404 handling, Latin token-boundary matching, CJK matching, metadata-field exclusion, explicit alias-file errors, and invalid worker-count errors.
+* No live GDELT download was run, no Goal 3A, Goal 3B, Goal 3C, or Goal 4A output was recomputed, and no notebook or figure was created.
+
+### Goal 4A report-ready 8-week Hype artifacts
+
+* Added a reporting-only artifact builder for the 8-week Taiwan Hype Index pilot.
+* The builder consumes existing Goal 3C Hype Index outputs and writes curated tables under `report/results/pilot_8w/` plus Matplotlib PNG figures and visual-QA manifests under `report/figures/pilot_8w/`.
+* Required outputs include pipeline, weekly, top-stock, zero-news, and methodology-note tables; required figures include weekly news counts, top-stock bar charts, raw and market-cap-adjusted Hype heatmaps, and the raw-Hype-versus-market-cap-weight scatter plot.
+* The figure manifest and figure index provide objective visual-QA checks for file existence, image size, labels, and top-N label limits, but subjective aesthetics still require human review.
+* This step does not download live GDELT data, does not rerun Goal 3A, Goal 3B, or Goal 3C, does not change Hype formulas, and does not create the final notebook.
 
 ### Goal 3D-lite methodology cleanup
 
