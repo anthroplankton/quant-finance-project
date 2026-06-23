@@ -1,24 +1,28 @@
 filename,title,chart_type,purpose,width_px,height_px,dpi,file_size_bytes,input_rows_used,visual_quality_status
 weekly_news_counts.png,"Weekly Total News Count, Taiwan Hype Index Pilot",bar,Show total pilot news-count volume by week.,1342,742,160,44761,8,passed
 top_stock_news_counts.png,Top 10 Stocks by Total News Count,horizontal_bar,Rank stocks by total pilot news attention.,1503,872,160,89605,10,passed
-top_mean_raw_hype.png,Top 10 Stocks by Mean Raw Hype,horizontal_bar,Rank stocks by average raw Hype share.,1503,873,160,89537,10,passed
+top_pooled_raw_hype_stocks.png,Top 10 Stocks by Pooled Raw Hype,horizontal_bar,Rank stocks by pooled 8-week raw Hype share.,1503,873,160,90728,10,passed
 raw_hype_heatmap_top_stocks.png,Raw Hype Heatmap for Top 10 News-Count Stocks,heatmap,Compare weekly raw Hype shares for high-news stocks.,1732,975,160,97410,80,passed
-market_cap_adjusted_hype_heatmap_top_stocks.png,Market-Cap-Adjusted Hype Heatmap for Top 10 Stocks,heatmap,Compare weekly attention-to-size ratios for stocks with high mean market-cap-adjusted Hype.,1714,975,160,100306,80,passed
-raw_hype_vs_market_cap_weight_scatter.png,Mean Raw Hype vs Mean Market-Cap Weight,scatter,Show whether average news-attention share is above or below average market-cap weight.,1336,808,160,63919,50,passed
-raw_hype_vs_market_cap_weight_scatter_zoom.png,"Mean Raw Hype vs Mean Market-Cap Weight, Lower-Left Zoom",scatter,Make the lower-left attention-versus-size cluster readable without changing the full-scale scatter.,1338,808,160,59102,49,passed
-attention_size_imbalance_top_stocks.png,Top 10 Attention-Size Imbalances,horizontal_bar,Rank stocks by the largest average attention-size imbalance.,1503,873,160,95291,10,passed
-top_mean_market_cap_adjusted_hype.png,Top 10 Stocks by Mean Market-Cap-Adjusted Hype,horizontal_bar,Rank stocks by average attention-to-size ratio.,1503,873,160,93101,10,passed
+market_cap_adjusted_hype_heatmap_top_stocks.png,Market-Cap-Adjusted Hype Heatmap for Top 10 Stocks,heatmap,Compare weekly attention-to-size ratios for stocks with high pooled market-cap-adjusted Hype.,1714,975,160,100348,80,passed
+pooled_raw_hype_vs_pooled_market_cap_weight_scatter.png,Pooled Raw Hype vs Pooled Market-Cap Weight,scatter,Show whether pooled news-attention share is above or below pooled market-cap weight.,1336,809,160,65895,50,passed
+pooled_raw_hype_vs_pooled_market_cap_weight_scatter_zoom.png,"Pooled Raw Hype vs Pooled Market-Cap Weight, Lower-Left Zoom",scatter,Make the lower-left attention-versus-size cluster readable without changing the full-scale scatter.,1339,809,160,67694,49,passed
+pooled_attention_size_imbalance_top_stocks.png,Top 10 Pooled Attention-Size Imbalances,horizontal_bar,Rank stocks by the largest pooled attention-size imbalance.,1503,873,160,97392,10,passed
+top_pooled_market_cap_adjusted_hype_stocks.png,Top 10 Stocks by Pooled Market-Cap-Adjusted Hype,horizontal_bar,Rank stocks by pooled attention-to-size ratio.,1503,873,160,93906,10,passed
 zero_news_stock_weeks.png,Top 10 Stocks by Zero-News Weeks,horizontal_bar,Show stocks with the most zero-news weeks in the pilot.,1503,872,160,103750,10,passed
 sector_stock_count.png,Sector Stock Count,horizontal_bar,Show industry composition of the fixed top-50 universe.,1501,904,160,52295,18,passed
 sector_market_cap_weight.png,Sector Mean Market-Cap Weight,horizontal_bar,Show market-cap concentration by industry.,1501,904,160,58355,18,passed
 equal_weight_cumulative_return_hype_window.png,Equal-Weight Cumulative Return with Hype Window,line,Show one-year equal-weight market proxy with the Hype window shaded.,1661,904,160,82403,243,passed
 equal_weight_rolling_volatility_20d_hype_window.png,Equal-Weight 20-Day Rolling Volatility with Hype Window,line,Show one-year rolling volatility with the Hype window shaded.,1661,904,160,77593,243,passed
-return_distribution_full_vs_hype_window.png,Equal-Weight Return Distribution: Full Sample vs Hype Window,histogram,Compare daily return distributions for full sample and Hype window.,1501,904,160,52361,281,passed
 hype_vs_weekly_return_scatter.png,Raw Hype vs Weekly Return,scatter,Show contemporaneous descriptive relation between raw Hype and returns.,1389,905,160,78863,400,passed
 hype_vs_weekly_volatility_scatter.png,Raw Hype vs Weekly Realized Volatility,scatter,Show contemporaneous descriptive relation between raw Hype and volatility.,1389,905,160,92832,400,passed
-sector_news_attention_vs_market_cap_weight.png,Sector News Attention vs Market-Cap Weight,scatter,Compare sector news-attention share with sector size.,1390,904,160,100020,18,passed
+cap_adjusted_hype_vs_weekly_return_scatter.png,Market-Cap-Adjusted Hype vs Weekly Return,scatter,Show contemporaneous descriptive relation between weekly market-cap-adjusted Hype and returns.,1389,905,160,107649,400,passed
+cap_adjusted_hype_vs_weekly_volatility_scatter.png,Market-Cap-Adjusted Hype vs Weekly Realized Volatility,scatter,Show contemporaneous descriptive relation between weekly market-cap-adjusted Hype and realized volatility.,1390,905,160,116814,400,passed
+pooled_sector_raw_hype_vs_pooled_market_cap_weight_scatter.png,Pooled Sector Raw Hype vs Pooled Market-Cap Weight,scatter,Compare pooled sector news-attention share with pooled sector size.,1390,905,160,72657,18,passed
+pooled_sector_raw_hype_vs_pooled_market_cap_weight_scatter_zoom.png,"Pooled Sector Raw Hype vs Pooled Market-Cap Weight, Lower-Weight Zoom",scatter,Make lower-weight sector attention-versus-size points readable.,1390,905,160,73824,17,passed
+pooled_sector_market_cap_adjusted_hype_ranking.png,Pooled Sector Market-Cap-Adjusted Hype Ranking,horizontal_bar,Rank industries by pooled sector attention-to-size ratio.,1501,905,160,64676,18,passed
+pooled_sector_attention_size_imbalance.png,Pooled Sector Attention-Size Imbalance,horizontal_bar,Show pooled sector attention share minus pooled sector size.,1501,905,160,65510,18,passed
 sector_market_cap_adjusted_hype_heatmap.png,Sector Market-Cap-Adjusted Hype by Week,heatmap,Compare weekly sector-level attention-to-size ratios.,1685,1599,160,80388,144,passed
-key_stock_case_study_2330.png,Key Stock Case Study: 2330,small_multiple,"Show weekly attention, return, and volatility for a key stock.",1628,1138,160,100536,8,passed
-key_stock_case_study_2454.png,Key Stock Case Study: 2454,small_multiple,"Show weekly attention, return, and volatility for a key stock.",1614,1138,160,105283,8,passed
-key_stock_case_study_2317.png,Key Stock Case Study: 2317,small_multiple,"Show weekly attention, return, and volatility for a key stock.",1614,1138,160,92510,8,passed
-key_stock_case_study_2357.png,Key Stock Case Study: 2357,small_multiple,"Show weekly attention, return, and volatility for a key stock.",1628,1138,160,93371,8,passed
+key_stock_case_study_2330.png,Key Stock Case Study: 2330,small_multiple,"Show weekly attention, size, attention-to-size, return, and volatility for a key stock.",1660,1734,160,169859,8,passed
+key_stock_case_study_2454.png,Key Stock Case Study: 2454,small_multiple,"Show weekly attention, size, attention-to-size, return, and volatility for a key stock.",1646,1734,160,163200,8,passed
+key_stock_case_study_2317.png,Key Stock Case Study: 2317,small_multiple,"Show weekly attention, size, attention-to-size, return, and volatility for a key stock.",1646,1734,160,159175,8,passed
+key_stock_case_study_2357.png,Key Stock Case Study: 2357,small_multiple,"Show weekly attention, size, attention-to-size, return, and volatility for a key stock.",1660,1734,160,153377,8,passed

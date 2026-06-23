@@ -14,17 +14,17 @@ Purpose: Rank stocks by total pilot news attention.
 
 ![Top 10 Stocks by Total News Count](top_stock_news_counts.png)
 
-## Top 10 Stocks by Mean Raw Hype
+## Top 10 Stocks by Pooled Raw Hype
 
-Purpose: Rank stocks by average raw Hype share.
+Purpose: Rank stocks by pooled 8-week raw Hype share.
 
-![Top 10 Stocks by Mean Raw Hype](top_mean_raw_hype.png)
+![Top 10 Stocks by Pooled Raw Hype](top_pooled_raw_hype_stocks.png)
 
-## Top 10 Stocks by Mean Market-Cap-Adjusted Hype
+## Top 10 Stocks by Pooled Market-Cap-Adjusted Hype
 
-Purpose: Rank stocks by average attention-to-size ratio.
+Purpose: Rank stocks by pooled attention-to-size ratio.
 
-![Top 10 Stocks by Mean Market-Cap-Adjusted Hype](top_mean_market_cap_adjusted_hype.png)
+![Top 10 Stocks by Pooled Market-Cap-Adjusted Hype](top_pooled_market_cap_adjusted_hype_stocks.png)
 
 ## Raw Hype Heatmap for Top 10 News-Count Stocks
 
@@ -34,27 +34,27 @@ Purpose: Compare weekly raw Hype shares for high-news stocks.
 
 ## Market-Cap-Adjusted Hype Heatmap for Top 10 Stocks
 
-Purpose: Compare weekly attention-to-size ratios for stocks with high mean market-cap-adjusted Hype.
+Purpose: Compare weekly attention-to-size ratios for stocks with high pooled market-cap-adjusted Hype.
 
 ![Market-Cap-Adjusted Hype Heatmap for Top 10 Stocks](market_cap_adjusted_hype_heatmap_top_stocks.png)
 
-## Mean Raw Hype vs Mean Market-Cap Weight
+## Pooled Raw Hype vs Pooled Market-Cap Weight
 
-Purpose: Show whether average news-attention share is above or below average market-cap weight.
+Purpose: Show whether pooled news-attention share is above or below pooled market-cap weight.
 
-![Mean Raw Hype vs Mean Market-Cap Weight](raw_hype_vs_market_cap_weight_scatter.png)
+![Pooled Raw Hype vs Pooled Market-Cap Weight](pooled_raw_hype_vs_pooled_market_cap_weight_scatter.png)
 
-## Mean Raw Hype vs Mean Market-Cap Weight, Lower-Left Zoom
+## Pooled Raw Hype vs Pooled Market-Cap Weight, Lower-Left Zoom
 
 Purpose: Make the lower-left attention-versus-size cluster readable without changing the full-scale scatter.
 
-![Mean Raw Hype vs Mean Market-Cap Weight, Lower-Left Zoom](raw_hype_vs_market_cap_weight_scatter_zoom.png)
+![Pooled Raw Hype vs Pooled Market-Cap Weight, Lower-Left Zoom](pooled_raw_hype_vs_pooled_market_cap_weight_scatter_zoom.png)
 
-## Top 10 Attention-Size Imbalances
+## Top 10 Pooled Attention-Size Imbalances
 
-Purpose: Rank stocks by the largest average attention-size imbalance.
+Purpose: Rank stocks by the largest pooled attention-size imbalance.
 
-![Top 10 Attention-Size Imbalances](attention_size_imbalance_top_stocks.png)
+![Top 10 Pooled Attention-Size Imbalances](pooled_attention_size_imbalance_top_stocks.png)
 
 ## Top 10 Stocks by Zero-News Weeks
 
@@ -86,12 +86,6 @@ Purpose: Show one-year rolling volatility with the Hype window shaded.
 
 ![Equal-Weight 20-Day Rolling Volatility with Hype Window](equal_weight_rolling_volatility_20d_hype_window.png)
 
-## Equal-Weight Return Distribution: Full Sample vs Hype Window
-
-Purpose: Compare daily return distributions for full sample and Hype window.
-
-![Equal-Weight Return Distribution: Full Sample vs Hype Window](return_distribution_full_vs_hype_window.png)
-
 ## Raw Hype vs Weekly Return
 
 Purpose: Show contemporaneous descriptive relation between raw Hype and returns.
@@ -104,11 +98,41 @@ Purpose: Show contemporaneous descriptive relation between raw Hype and volatili
 
 ![Raw Hype vs Weekly Realized Volatility](hype_vs_weekly_volatility_scatter.png)
 
-## Sector News Attention vs Market-Cap Weight
+## Market-Cap-Adjusted Hype vs Weekly Return
 
-Purpose: Compare sector news-attention share with sector size.
+Purpose: Show contemporaneous descriptive relation between weekly market-cap-adjusted Hype and returns.
 
-![Sector News Attention vs Market-Cap Weight](sector_news_attention_vs_market_cap_weight.png)
+![Market-Cap-Adjusted Hype vs Weekly Return](cap_adjusted_hype_vs_weekly_return_scatter.png)
+
+## Market-Cap-Adjusted Hype vs Weekly Realized Volatility
+
+Purpose: Show contemporaneous descriptive relation between weekly market-cap-adjusted Hype and realized volatility.
+
+![Market-Cap-Adjusted Hype vs Weekly Realized Volatility](cap_adjusted_hype_vs_weekly_volatility_scatter.png)
+
+## Pooled Sector Raw Hype vs Pooled Market-Cap Weight
+
+Purpose: Compare pooled sector news-attention share with pooled sector size.
+
+![Pooled Sector Raw Hype vs Pooled Market-Cap Weight](pooled_sector_raw_hype_vs_pooled_market_cap_weight_scatter.png)
+
+## Pooled Sector Raw Hype vs Pooled Market-Cap Weight, Lower-Weight Zoom
+
+Purpose: Make lower-weight sector attention-versus-size points readable.
+
+![Pooled Sector Raw Hype vs Pooled Market-Cap Weight, Lower-Weight Zoom](pooled_sector_raw_hype_vs_pooled_market_cap_weight_scatter_zoom.png)
+
+## Pooled Sector Market-Cap-Adjusted Hype Ranking
+
+Purpose: Rank industries by pooled sector attention-to-size ratio.
+
+![Pooled Sector Market-Cap-Adjusted Hype Ranking](pooled_sector_market_cap_adjusted_hype_ranking.png)
+
+## Pooled Sector Attention-Size Imbalance
+
+Purpose: Show pooled sector attention share minus pooled sector size.
+
+![Pooled Sector Attention-Size Imbalance](pooled_sector_attention_size_imbalance.png)
 
 ## Sector Market-Cap-Adjusted Hype by Week
 
@@ -118,24 +142,24 @@ Purpose: Compare weekly sector-level attention-to-size ratios.
 
 ## Key Stock Case Study: 2330
 
-Purpose: Show weekly attention, return, and volatility for a key stock.
+Purpose: Show weekly attention, size, attention-to-size, return, and volatility for a key stock.
 
 ![Key Stock Case Study: 2330](key_stock_case_study_2330.png)
 
 ## Key Stock Case Study: 2454
 
-Purpose: Show weekly attention, return, and volatility for a key stock.
+Purpose: Show weekly attention, size, attention-to-size, return, and volatility for a key stock.
 
 ![Key Stock Case Study: 2454](key_stock_case_study_2454.png)
 
 ## Key Stock Case Study: 2317
 
-Purpose: Show weekly attention, return, and volatility for a key stock.
+Purpose: Show weekly attention, size, attention-to-size, return, and volatility for a key stock.
 
 ![Key Stock Case Study: 2317](key_stock_case_study_2317.png)
 
 ## Key Stock Case Study: 2357
 
-Purpose: Show weekly attention, return, and volatility for a key stock.
+Purpose: Show weekly attention, size, attention-to-size, return, and volatility for a key stock.
 
 ![Key Stock Case Study: 2357](key_stock_case_study_2357.png)

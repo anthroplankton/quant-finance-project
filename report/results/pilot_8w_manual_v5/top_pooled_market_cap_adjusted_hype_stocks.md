@@ -1,0 +1,12 @@
+| ticker | official_chinese_name | official_english_name | industry | total_news_count_unique_urls | pooled_raw_hype | pooled_market_cap_weight | pooled_market_cap_adjusted_hype |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 2454 | 聯發科技 | Mediatek Inc. | M23G 半導體 | 1468 | 0.2065569157 | 0.04523642971 | 4.566163091 |
+| 2357 | 華碩電腦 | Asustek Computer Inc. | M23A 電腦及週邊 | 259 | 0.03644294358 | 0.00925626969 | 3.937109094 |
+| 1301 | 台灣塑膠工業 | Formosa Plastics Corporation | M13A 石化 | 127 | 0.01786970592 | 0.004766682354 | 3.748877017 |
+| 4938 | 和碩聯合科技 | Pegatron Corporation | M23A 電腦及週邊 | 112 | 0.01575911074 | 0.004652282421 | 3.387393393 |
+| 2317 | 鴻海精密工業 | Hon Hai Precision Ind. Co., Ltd. | M23A 電腦及週邊 | 994 | 0.1398621078 | 0.04297691748 | 3.254354104 |
+| 3231 | 緯創資通 | Wistron Corporation | M23A 電腦及週邊 | 106 | 0.01491487266 | 0.006503224215 | 2.293458163 |
+| 3661 | 世芯電子 | Alchip Technologies, Limited | M23G 半導體 | 50 | 0.007035317293 | 0.004185080701 | 1.681046985 |
+| 1303 | 南亞塑膠工業 | Nan Ya Plastics Corporation | M13A 石化 | 58 | 0.00816096806 | 0.005122856457 | 1.593050309 |
+| 2618 | 長榮航空 | EVA Airways Corporation | M26D 空運 | 36 | 0.005065428451 | 0.004677074355 | 1.083033552 |
+| 2609 | 陽明海運 | Yang Ming Marine Transport Corp. | M26A 海運 | 42 | 0.005909666526 | 0.005535961163 | 1.067505055 |

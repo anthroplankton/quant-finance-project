@@ -278,6 +278,18 @@ not replace the existing last-available-trading-day weekly market-cap weight
 convention with weekly average market cap, and does not create the final
 notebook.
 
+Goal 4C revises the report layer so stock-level and sector-level
+cross-sectional Hype rankings use pooled pilot-window quantities only. For
+stocks, pooled raw Hype is \(\sum_w N_{i,w} / \sum_w \sum_j N_{j,w}\), pooled
+market-cap weight is \(\sum_w MC_{i,w} / \sum_w \sum_j MC_{j,w}\), and pooled
+market-cap-adjusted Hype is their ratio. Sector pooled Hype uses the same
+construction after aggregating news counts and market capitalization over
+stocks in each TEJ industry group. Equal-week arithmetic mean Hype is no longer
+used for report cross-sectional rankings because it does not generally equal
+the pilot-window pooled news share. Weekly Hype remains available only for
+time-path heatmaps, key-stock weekly case studies, and contemporaneous
+descriptive return / volatility comparisons.
+
 Manual-v5 completion facts for the selected 8-week pilot:
 
 - selected chunks: 2025-04-05 to 2025-05-02 and 2025-05-03 to 2025-05-30;

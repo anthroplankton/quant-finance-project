@@ -112,13 +112,13 @@ METADATA_COLUMNS = [
 REQUIRED_FIGURE_FILENAMES = [
     "weekly_news_counts.png",
     "top_stock_news_counts.png",
-    "top_mean_raw_hype.png",
-    "top_mean_market_cap_adjusted_hype.png",
+    "top_pooled_raw_hype_stocks.png",
+    "top_pooled_market_cap_adjusted_hype_stocks.png",
     "raw_hype_heatmap_top_stocks.png",
     "market_cap_adjusted_hype_heatmap_top_stocks.png",
-    "raw_hype_vs_market_cap_weight_scatter.png",
-    "raw_hype_vs_market_cap_weight_scatter_zoom.png",
-    "attention_size_imbalance_top_stocks.png",
+    "pooled_raw_hype_vs_pooled_market_cap_weight_scatter.png",
+    "pooled_raw_hype_vs_pooled_market_cap_weight_scatter_zoom.png",
+    "pooled_attention_size_imbalance_top_stocks.png",
     "zero_news_stock_weeks.png",
 ]
 GOAL4B_MARKET_FIGURE_FILENAMES = [
@@ -126,10 +126,14 @@ GOAL4B_MARKET_FIGURE_FILENAMES = [
     "sector_market_cap_weight.png",
     "equal_weight_cumulative_return_hype_window.png",
     "equal_weight_rolling_volatility_20d_hype_window.png",
-    "return_distribution_full_vs_hype_window.png",
     "hype_vs_weekly_return_scatter.png",
     "hype_vs_weekly_volatility_scatter.png",
-    "sector_news_attention_vs_market_cap_weight.png",
+    "cap_adjusted_hype_vs_weekly_return_scatter.png",
+    "cap_adjusted_hype_vs_weekly_volatility_scatter.png",
+    "pooled_sector_raw_hype_vs_pooled_market_cap_weight_scatter.png",
+    "pooled_sector_raw_hype_vs_pooled_market_cap_weight_scatter_zoom.png",
+    "pooled_sector_market_cap_adjusted_hype_ranking.png",
+    "pooled_sector_attention_size_imbalance.png",
     "sector_market_cap_adjusted_hype_heatmap.png",
     "key_stock_case_study_2330.png",
     "key_stock_case_study_2454.png",
@@ -142,8 +146,10 @@ GOAL4A_TABLE_NAMES = [
     "weekly_news_totals",
     "weekly_hype_summary",
     "top_stock_news_counts",
-    "top_raw_hype_stocks",
-    "top_market_cap_adjusted_hype_stocks",
+    "stock_pooled_hype_summary",
+    "top_pooled_raw_hype_stocks",
+    "top_pooled_market_cap_adjusted_hype_stocks",
+    "top_pooled_attention_size_imbalance_stocks",
     "zero_news_stock_summary",
 ]
 GOAL4B_TABLE_NAMES = [
@@ -154,8 +160,26 @@ GOAL4B_TABLE_NAMES = [
     "basic_return_statistics_full_vs_hype_window",
     "hype_return_volatility_correlation_summary",
     "key_stock_case_study_summary",
-    "sector_hype_summary",
+    "sector_pooled_hype_summary",
+    "top_pooled_sector_market_cap_adjusted_hype",
+    "tej_industry_label_mapping",
     "sector_weekly_hype_summary",
+]
+DEPRECATED_REPORT_TABLE_NAMES = [
+    "top_raw_hype_stocks",
+    "top_market_cap_adjusted_hype_stocks",
+    "sector_hype_summary",
+]
+DEPRECATED_REPORT_FIGURE_FILENAMES = [
+    "top_mean_raw_hype.png",
+    "top_mean_market_cap_adjusted_hype.png",
+    "raw_hype_vs_market_cap_weight_scatter.png",
+    "raw_hype_vs_market_cap_weight_scatter_zoom.png",
+    "attention_size_imbalance_top_stocks.png",
+    "sector_news_attention_vs_market_cap_weight.png",
+    "return_distribution_full_vs_hype_window.png",
+    "mean_vs_pooled_raw_hype_comparison.png",
+    "mean_vs_pooled_cap_adjusted_hype_comparison.png",
 ]
 
 
@@ -656,6 +680,18 @@ def _write_table_pair(
     return csv_path, md_path
 
 
+def cleanup_deprecated_report_artifacts(
+    *, results_dir: Path, figures_dir: Path
+) -> None:
+    """Remove report artifacts superseded by pooled cross-sectional reporting."""
+
+    for name in DEPRECATED_REPORT_TABLE_NAMES:
+        for suffix in (".csv", ".md"):
+            (results_dir / f"{name}{suffix}").unlink(missing_ok=True)
+    for filename in DEPRECATED_REPORT_FIGURE_FILENAMES:
+        (figures_dir / filename).unlink(missing_ok=True)
+
+
 def _metadata_columns(frame: pd.DataFrame) -> list[str]:
     return [column for column in METADATA_COLUMNS if column in frame.columns]
 
@@ -677,6 +713,108 @@ def _top_stocks(
         kind="stable",
     )
     return ordered.head(top_n).reset_index(drop=True)
+
+
+def _market_cap_pool_values(
+    *,
+    hype_panel: pd.DataFrame,
+    market_inputs: MarketReportInputs | None,
+) -> pd.Series:
+    """Return stock-week market-cap pool values aligned to ``hype_panel`` rows."""
+
+    if market_inputs is None:
+        return hype_panel["weekly_market_cap_weight"].astype(float)
+
+    market_caps = market_inputs.weekly_market_weights[
+        ["ticker", "week_end", "market_cap"]
+    ].copy()
+    market_caps["ticker"] = _ticker_text(market_caps["ticker"])
+    market_caps["week_end"] = _date_series(market_caps["week_end"])
+    panel_keys = hype_panel[["ticker", "week_end"]].copy()
+    panel_keys["ticker"] = _ticker_text(panel_keys["ticker"])
+    panel_keys["week_end"] = _date_series(panel_keys["week_end"])
+    merged = panel_keys.merge(
+        market_caps,
+        on=["ticker", "week_end"],
+        how="left",
+        validate="many_to_one",
+    )
+    if merged["market_cap"].isna().any():
+        missing = panel_keys.loc[merged["market_cap"].isna()].head(5).to_dict("records")
+        raise HypeReportError(
+            f"Missing TEJ weekly market cap for pooled reporting row(s): {missing}."
+        )
+    return pd.Series(
+        merged["market_cap"].to_numpy(dtype=float),
+        index=hype_panel.index,
+    )
+
+
+def build_stock_pooled_hype_summary(
+    *,
+    hype_panel: pd.DataFrame,
+    market_inputs: MarketReportInputs | None = None,
+) -> pd.DataFrame:
+    """Build pooled 8-week stock-level Hype summary rows."""
+
+    frame = hype_panel.copy()
+    frame["ticker"] = _ticker_text(frame["ticker"])
+    frame["_market_cap_pool_value"] = _market_cap_pool_values(
+        hype_panel=frame,
+        market_inputs=market_inputs,
+    )
+    total_news = frame["news_count_unique_urls"].sum()
+    total_market_cap_pool = frame["_market_cap_pool_value"].sum()
+    grouped = (
+        frame.groupby(
+            [
+                "ticker",
+                "official_chinese_name",
+                "official_english_name",
+                "industry",
+            ],
+            as_index=False,
+        )
+        .agg(
+            total_news_count_unique_urls=("news_count_unique_urls", "sum"),
+            pooled_market_cap_pool_value=("_market_cap_pool_value", "sum"),
+            nonzero_week_count=(
+                "news_count_unique_urls",
+                lambda values: int((values > 0).sum()),
+            ),
+            zero_week_count=(
+                "news_count_unique_urls",
+                lambda values: int((values == 0).sum()),
+            ),
+        )
+        .sort_values(
+            ["total_news_count_unique_urls", "ticker"], ascending=[False, True]
+        )
+    )
+    grouped["pooled_raw_hype"] = grouped["total_news_count_unique_urls"] / total_news
+    grouped["pooled_market_cap_weight"] = (
+        grouped["pooled_market_cap_pool_value"] / total_market_cap_pool
+    )
+    grouped["pooled_market_cap_adjusted_hype"] = (
+        grouped["pooled_raw_hype"] / grouped["pooled_market_cap_weight"]
+    )
+    grouped["pooled_attention_size_imbalance"] = (
+        grouped["pooled_raw_hype"] - grouped["pooled_market_cap_weight"]
+    )
+    columns = [
+        "ticker",
+        "official_chinese_name",
+        "official_english_name",
+        "industry",
+        "total_news_count_unique_urls",
+        "pooled_raw_hype",
+        "pooled_market_cap_weight",
+        "pooled_market_cap_adjusted_hype",
+        "pooled_attention_size_imbalance",
+        "nonzero_week_count",
+        "zero_week_count",
+    ]
+    return grouped[columns].reset_index(drop=True)
 
 
 def _chunk_number(summary: dict[str, Any], key: str, default: float = 0.0) -> float:
@@ -972,50 +1110,76 @@ def build_weekly_hype_summary(weekly_summary: pd.DataFrame) -> pd.DataFrame:
     )
 
 
-def build_top_stock_tables(
-    stock_summary: pd.DataFrame,
+def build_pooled_stock_tables(
+    pooled_stock_summary: pd.DataFrame,
     *,
     top_n: int,
 ) -> dict[str, pd.DataFrame]:
-    """Build top-stock tables used in the report."""
+    """Build pooled stock-level tables used in the report."""
 
-    metadata = _metadata_columns(stock_summary)
     table_specs = {
         "top_stock_news_counts": (
             "total_news_count_unique_urls",
             [
-                *metadata,
+                "ticker",
+                "official_chinese_name",
+                "official_english_name",
+                "industry",
                 "total_news_count_unique_urls",
                 "nonzero_week_count",
                 "zero_week_count",
-                "mean_raw_hype",
-                "mean_market_cap_adjusted_hype",
+                "pooled_raw_hype",
+                "pooled_market_cap_weight",
             ],
         ),
-        "top_raw_hype_stocks": (
-            "mean_raw_hype",
+        "top_pooled_raw_hype_stocks": (
+            "pooled_raw_hype",
             [
-                *metadata,
+                "ticker",
+                "official_chinese_name",
+                "official_english_name",
+                "industry",
                 "total_news_count_unique_urls",
-                "mean_raw_hype",
-                "max_raw_hype",
-                "mean_weekly_market_cap_weight",
+                "pooled_raw_hype",
+                "pooled_market_cap_weight",
+                "pooled_attention_size_imbalance",
             ],
         ),
-        "top_market_cap_adjusted_hype_stocks": (
-            "mean_market_cap_adjusted_hype",
+        "top_pooled_market_cap_adjusted_hype_stocks": (
+            "pooled_market_cap_adjusted_hype",
             [
-                *metadata,
+                "ticker",
+                "official_chinese_name",
+                "official_english_name",
+                "industry",
                 "total_news_count_unique_urls",
-                "mean_market_cap_adjusted_hype",
-                "max_market_cap_adjusted_hype",
-                "mean_weekly_market_cap_weight",
+                "pooled_raw_hype",
+                "pooled_market_cap_weight",
+                "pooled_market_cap_adjusted_hype",
+            ],
+        ),
+        "top_pooled_attention_size_imbalance_stocks": (
+            "absolute_pooled_attention_size_imbalance",
+            [
+                "ticker",
+                "official_chinese_name",
+                "official_english_name",
+                "industry",
+                "total_news_count_unique_urls",
+                "pooled_raw_hype",
+                "pooled_market_cap_weight",
+                "pooled_attention_size_imbalance",
+                "pooled_market_cap_adjusted_hype",
             ],
         ),
     }
+    pooled = pooled_stock_summary.copy()
+    pooled["absolute_pooled_attention_size_imbalance"] = pooled[
+        "pooled_attention_size_imbalance"
+    ].abs()
     tables: dict[str, pd.DataFrame] = {}
     for name, (metric, columns) in table_specs.items():
-        table = _top_stocks(stock_summary, metric=metric, top_n=top_n)
+        table = _top_stocks(pooled, metric=metric, top_n=top_n)
         tables[name] = table[_ordered_columns(table, columns)]
     return tables
 
@@ -1419,17 +1583,36 @@ def build_hype_return_volatility_correlation_summary(
 def build_key_stock_case_study_summary(
     *,
     hype_market_panel: pd.DataFrame,
+    pooled_stock_summary: pd.DataFrame,
     key_tickers: Iterable[str],
 ) -> pd.DataFrame:
     """Build weekly case-study rows for selected stocks."""
 
     tickers = [str(ticker) for ticker in key_tickers]
     frame = hype_market_panel.loc[hype_market_panel["ticker"].isin(tickers)].copy()
+    frame = frame.merge(
+        pooled_stock_summary[
+            [
+                "ticker",
+                "total_news_count_unique_urls",
+                "pooled_raw_hype",
+                "pooled_market_cap_weight",
+                "pooled_market_cap_adjusted_hype",
+            ]
+        ],
+        on="ticker",
+        how="left",
+        validate="many_to_one",
+    )
     columns = [
         "ticker",
         "official_chinese_name",
         "official_english_name",
         "industry",
+        "total_news_count_unique_urls",
+        "pooled_raw_hype",
+        "pooled_market_cap_weight",
+        "pooled_market_cap_adjusted_hype",
         "week_index",
         "week_start",
         "week_end",
@@ -1481,37 +1664,137 @@ def build_sector_weekly_hype_summary(hype_panel: pd.DataFrame) -> pd.DataFrame:
     )
 
 
-def build_sector_hype_summary(sector_weekly: pd.DataFrame) -> pd.DataFrame:
-    """Summarize industry-level Hype diagnostics across the pilot weeks."""
+def _industry_parts(industry: Any) -> tuple[str, str]:
+    text = " ".join(str(industry).split())
+    if not text:
+        return "", ""
+    parts = text.split(maxsplit=1)
+    if len(parts) == 1:
+        return parts[0], ""
+    return parts[0], parts[1]
 
-    frame = (
-        sector_weekly.groupby("industry", as_index=False)
+
+def build_sector_pooled_hype_summary(
+    *,
+    hype_panel: pd.DataFrame,
+    market_inputs: MarketReportInputs | None = None,
+) -> pd.DataFrame:
+    """Build pooled 8-week sector-level Hype summary rows."""
+
+    frame = hype_panel.copy()
+    frame["ticker"] = _ticker_text(frame["ticker"])
+    frame["_market_cap_pool_value"] = _market_cap_pool_values(
+        hype_panel=frame,
+        market_inputs=market_inputs,
+    )
+    total_news = frame["news_count_unique_urls"].sum()
+    total_market_cap_pool = frame["_market_cap_pool_value"].sum()
+    sector_weekly = build_sector_weekly_hype_summary(frame)
+    grouped = (
+        frame.groupby("industry", as_index=False)
         .agg(
-            stock_count=("stock_count", "max"),
-            total_news_count=("sector_news_count", "sum"),
-            mean_sector_raw_hype=("sector_raw_hype", "mean"),
-            max_sector_raw_hype=("sector_raw_hype", "max"),
-            mean_sector_market_cap_weight=("sector_market_cap_weight", "mean"),
-            mean_sector_market_cap_adjusted_hype=(
-                "sector_market_cap_adjusted_hype",
-                "mean",
-            ),
-            max_sector_market_cap_adjusted_hype=(
-                "sector_market_cap_adjusted_hype",
-                "max",
-            ),
-            nonzero_week_count=(
-                "sector_news_count",
-                lambda values: int((values > 0).sum()),
-            ),
+            stock_count=("ticker", "nunique"),
+            total_news_count=("news_count_unique_urls", "sum"),
+            pooled_market_cap_pool_value=("_market_cap_pool_value", "sum"),
         )
+        .merge(
+            sector_weekly.groupby("industry", as_index=False).agg(
+                nonzero_week_count=(
+                    "sector_news_count",
+                    lambda values: int((values > 0).sum()),
+                )
+            ),
+            on="industry",
+            how="left",
+            validate="one_to_one",
+        )
+    )
+    grouped["pooled_sector_raw_hype"] = grouped["total_news_count"] / total_news
+    grouped["pooled_sector_market_cap_weight"] = (
+        grouped["pooled_market_cap_pool_value"] / total_market_cap_pool
+    )
+    grouped["pooled_sector_market_cap_adjusted_hype"] = (
+        grouped["pooled_sector_raw_hype"] / grouped["pooled_sector_market_cap_weight"]
+    )
+    grouped["pooled_sector_attention_size_imbalance"] = (
+        grouped["pooled_sector_raw_hype"] - grouped["pooled_sector_market_cap_weight"]
+    )
+    parts = grouped["industry"].map(_industry_parts)
+    grouped["industry_code"] = [item[0] for item in parts]
+    grouped["industry_chinese_label"] = [item[1] for item in parts]
+    columns = [
+        "industry",
+        "industry_code",
+        "industry_chinese_label",
+        "stock_count",
+        "total_news_count",
+        "pooled_sector_raw_hype",
+        "pooled_sector_market_cap_weight",
+        "pooled_sector_market_cap_adjusted_hype",
+        "pooled_sector_attention_size_imbalance",
+        "nonzero_week_count",
+    ]
+    return (
+        grouped[columns]
         .sort_values(
-            ["total_news_count", "industry"],
+            ["pooled_sector_raw_hype", "industry"],
             ascending=[False, True],
             kind="stable",
         )
+        .reset_index(drop=True)
     )
-    return frame.reset_index(drop=True)
+
+
+def build_tej_industry_label_mapping(
+    sector_pooled: pd.DataFrame,
+) -> pd.DataFrame:
+    """Build TEJ industry code and Chinese-label mapping table."""
+
+    columns = [
+        "industry_code",
+        "industry_chinese_label",
+        "industry",
+        "stock_count",
+        "pooled_sector_raw_hype",
+        "pooled_sector_market_cap_weight",
+        "pooled_sector_market_cap_adjusted_hype",
+    ]
+    frame = sector_pooled[_ordered_columns(sector_pooled, columns)].rename(
+        columns={"industry": "full_original_industry_label"}
+    )
+    return frame.sort_values(
+        ["industry_code", "full_original_industry_label"],
+        kind="stable",
+    ).reset_index(drop=True)
+
+
+def build_top_pooled_sector_market_cap_adjusted_hype(
+    sector_pooled: pd.DataFrame,
+    *,
+    top_n: int,
+) -> pd.DataFrame:
+    """Build top pooled sector attention-to-size table."""
+
+    columns = [
+        "industry",
+        "industry_code",
+        "industry_chinese_label",
+        "stock_count",
+        "total_news_count",
+        "pooled_sector_raw_hype",
+        "pooled_sector_market_cap_weight",
+        "pooled_sector_market_cap_adjusted_hype",
+        "pooled_sector_attention_size_imbalance",
+    ]
+    return (
+        sector_pooled.sort_values(
+            ["pooled_sector_market_cap_adjusted_hype", "industry"],
+            ascending=[False, True],
+            kind="stable",
+        )
+        .head(top_n)[_ordered_columns(sector_pooled, columns)]
+        .reset_index(drop=True)
+    )
 
 
 def build_market_quant_tables(
@@ -1519,6 +1802,7 @@ def build_market_quant_tables(
     inputs: HypeReportInputs,
     market_inputs: MarketReportInputs,
     key_tickers: Iterable[str],
+    top_n: int,
 ) -> dict[str, pd.DataFrame]:
     """Build notebook-ready Goal 4B market and sector tables."""
 
@@ -1528,8 +1812,15 @@ def build_market_quant_tables(
         hype_panel=inputs.panel,
         market_inputs=market_inputs,
     )
+    pooled_stock_summary = build_stock_pooled_hype_summary(
+        hype_panel=inputs.panel,
+        market_inputs=market_inputs,
+    )
     sector_weekly = build_sector_weekly_hype_summary(inputs.panel)
-    sector_hype = build_sector_hype_summary(sector_weekly)
+    sector_pooled = build_sector_pooled_hype_summary(
+        hype_panel=inputs.panel,
+        market_inputs=market_inputs,
+    )
     return {
         "data_source_summary": build_data_source_summary(
             market_inputs=market_inputs,
@@ -1549,9 +1840,17 @@ def build_market_quant_tables(
         ),
         "key_stock_case_study_summary": build_key_stock_case_study_summary(
             hype_market_panel=hype_market_panel,
+            pooled_stock_summary=pooled_stock_summary,
             key_tickers=key_tickers,
         ),
-        "sector_hype_summary": sector_hype,
+        "sector_pooled_hype_summary": sector_pooled,
+        "top_pooled_sector_market_cap_adjusted_hype": (
+            build_top_pooled_sector_market_cap_adjusted_hype(
+                sector_pooled,
+                top_n=top_n,
+            )
+        ),
+        "tej_industry_label_mapping": build_tej_industry_label_mapping(sector_pooled),
         "sector_weekly_hype_summary": sector_weekly,
     }
 
@@ -1574,6 +1873,14 @@ def methodology_notes_markdown() -> str:
             "financial-news attention.",
             "- market_cap_adjusted_hype is an attention-to-size ratio and is not "
             "normalized to sum to 1.",
+            "- Cross-sectional report rankings use pooled 8-week Hype: total "
+            "stock news divided by total pilot news, with pooled market-cap "
+            "weight from aligned weekly TEJ market caps.",
+            "- Equal-week arithmetic mean Hype is not used for stock or sector "
+            "cross-sectional ranking because it does not generally equal pooled "
+            "news share over the pilot window.",
+            "- Weekly Hype is retained for time-path heatmaps, case studies, and "
+            "contemporaneous descriptive return / volatility comparisons.",
             "- No forecasting, backtesting, portfolio optimization, or investment "
             "advice is produced.",
             "",
@@ -1592,6 +1899,10 @@ def build_report_tables(
     """Write required report tables under the validated results directory."""
 
     results_dir.mkdir(parents=True, exist_ok=True)
+    pooled_stock_summary = build_stock_pooled_hype_summary(
+        hype_panel=inputs.panel,
+        market_inputs=market_inputs,
+    )
     tables = {
         "pipeline_validation_summary": build_data_pipeline_summary(
             summary=inputs.summary,
@@ -1602,7 +1913,8 @@ def build_report_tables(
         ),
         "weekly_news_totals": build_weekly_news_summary(inputs.weekly_summary),
         "weekly_hype_summary": build_weekly_hype_summary(inputs.weekly_summary),
-        **build_top_stock_tables(inputs.stock_summary, top_n=top_n),
+        "stock_pooled_hype_summary": pooled_stock_summary,
+        **build_pooled_stock_tables(pooled_stock_summary, top_n=top_n),
         "zero_news_stock_summary": build_zero_news_summary(inputs.stock_summary),
     }
     if market_inputs is not None:
@@ -1611,6 +1923,7 @@ def build_report_tables(
                 inputs=inputs,
                 market_inputs=market_inputs,
                 key_tickers=key_tickers,
+                top_n=top_n,
             )
         )
     table_paths = {
@@ -1686,6 +1999,7 @@ def render_report_figures(
     panel: pd.DataFrame,
     weekly_summary: pd.DataFrame,
     stock_summary: pd.DataFrame,
+    pooled_stock_summary: pd.DataFrame,
     figures_dir: Path,
     top_n: int,
     figure_dpi: int,
@@ -1700,7 +2014,7 @@ def render_report_figures(
     figures_dir.mkdir(parents=True, exist_ok=True)
     figure_paths: dict[str, Path] = {}
     specs: list[FigureSpec] = []
-    label_lookup = _stock_label_lookup(stock_summary)
+    label_lookup = _stock_label_lookup(pooled_stock_summary)
 
     weekly = weekly_summary.sort_values("week_index", kind="stable")
     week_labels = [
@@ -1732,7 +2046,7 @@ def render_report_figures(
     )
 
     top_total = _top_stocks(
-        stock_summary,
+        pooled_stock_summary,
         metric="total_news_count_unique_urls",
         top_n=top_n,
     )
@@ -1764,20 +2078,20 @@ def render_report_figures(
     )
 
     top_raw = _top_stocks(
-        stock_summary,
-        metric="mean_raw_hype",
+        pooled_stock_summary,
+        metric="pooled_raw_hype",
         top_n=top_n,
     )
-    title = f"Top {top_n} Stocks by Mean Raw Hype"
+    title = f"Top {top_n} Stocks by Pooled Raw Hype"
     fig, ax = plt.subplots(figsize=(9.5, 5.6))
     labels = [_stock_label(row) for _, row in top_raw.iterrows()]
-    ax.barh(labels, top_raw["mean_raw_hype"])
+    ax.barh(labels, top_raw["pooled_raw_hype"])
     ax.invert_yaxis()
     ax.set_title(title)
-    ax.set_xlabel("Mean raw_hype")
+    ax.set_xlabel("pooled_raw_hype")
     ax.set_ylabel("Stock")
     _style_axis_numbers(ax.xaxis)
-    path = figures_dir / "top_mean_raw_hype.png"
+    path = figures_dir / "top_pooled_raw_hype_stocks.png"
     _save_figure(fig, path, dpi=figure_dpi)
     plt.close(fig)
     figure_paths[path.name] = path
@@ -1786,10 +2100,10 @@ def render_report_figures(
             filename=path.name,
             title=title,
             chart_type="horizontal_bar",
-            purpose="Rank stocks by average raw Hype share.",
+            purpose="Rank stocks by pooled 8-week raw Hype share.",
             input_rows_used=len(top_raw),
             dpi=figure_dpi,
-            x_label="Mean raw_hype",
+            x_label="pooled_raw_hype",
             y_label="Stock",
             stock_label_count=len(top_raw),
         )
@@ -1824,8 +2138,8 @@ def render_report_figures(
     )
 
     top_adjusted = _top_stocks(
-        stock_summary,
-        metric="mean_market_cap_adjusted_hype",
+        pooled_stock_summary,
+        metric="pooled_market_cap_adjusted_hype",
         top_n=top_n,
     )
     adjusted_heatmap_tickers = top_adjusted["ticker"].astype(str).tolist()
@@ -1849,7 +2163,7 @@ def render_report_figures(
             chart_type="heatmap",
             purpose=(
                 "Compare weekly attention-to-size ratios for stocks with high "
-                "mean market-cap-adjusted Hype."
+                "pooled market-cap-adjusted Hype."
             ),
             input_rows_used=input_rows,
             dpi=figure_dpi,
@@ -1859,33 +2173,33 @@ def render_report_figures(
         )
     )
 
-    title = "Mean Raw Hype vs Mean Market-Cap Weight"
+    title = "Pooled Raw Hype vs Pooled Market-Cap Weight"
     fig, ax = plt.subplots(figsize=(8.5, 5.2))
-    x = stock_summary["mean_weekly_market_cap_weight"]
-    y = stock_summary["mean_raw_hype"]
+    x = pooled_stock_summary["pooled_market_cap_weight"]
+    y = pooled_stock_summary["pooled_raw_hype"]
     ax.scatter(x, y, alpha=0.78)
-    line_max = max(float(x.max()), float(y.max())) if len(stock_summary) else 1.0
+    line_max = max(float(x.max()), float(y.max())) if len(pooled_stock_summary) else 1.0
     ax.plot([0, line_max], [0, line_max], color="0.45", linewidth=1)
     ax.text(line_max, line_max, "y=x", ha="right", va="bottom", fontsize=9)
     ax.set_title(title)
-    ax.set_xlabel("Mean weekly market-cap weight")
-    ax.set_ylabel("Mean raw_hype")
+    ax.set_xlabel("pooled_market_cap_weight")
+    ax.set_ylabel("pooled_raw_hype")
     _style_axis_numbers(ax.xaxis)
     _style_axis_numbers(ax.yaxis)
     annotate = _top_stocks(
-        stock_summary,
+        pooled_stock_summary,
         metric="total_news_count_unique_urls",
         top_n=min(5, top_n),
     )
     for _, row in annotate.iterrows():
         ax.annotate(
             str(row["ticker"]),
-            (row["mean_weekly_market_cap_weight"], row["mean_raw_hype"]),
+            (row["pooled_market_cap_weight"], row["pooled_raw_hype"]),
             xytext=(4, 4),
             textcoords="offset points",
             fontsize=8,
         )
-    path = figures_dir / "raw_hype_vs_market_cap_weight_scatter.png"
+    path = figures_dir / "pooled_raw_hype_vs_pooled_market_cap_weight_scatter.png"
     _save_figure(fig, path, dpi=figure_dpi)
     plt.close(fig)
     figure_paths[path.name] = path
@@ -1895,24 +2209,26 @@ def render_report_figures(
             title=title,
             chart_type="scatter",
             purpose=(
-                "Show whether average news-attention share is above or below "
-                "average market-cap weight."
+                "Show whether pooled news-attention share is above or below "
+                "pooled market-cap weight."
             ),
-            input_rows_used=len(stock_summary),
+            input_rows_used=len(pooled_stock_summary),
             dpi=figure_dpi,
-            x_label="Mean weekly market-cap weight",
-            y_label="Mean raw_hype",
+            x_label="pooled_market_cap_weight",
+            y_label="pooled_raw_hype",
             stock_label_count=len(annotate),
         )
     )
 
-    title = "Mean Raw Hype vs Mean Market-Cap Weight, Lower-Left Zoom"
+    title = "Pooled Raw Hype vs Pooled Market-Cap Weight, Lower-Left Zoom"
     fig, ax = plt.subplots(figsize=(8.5, 5.2))
-    zoom = stock_summary.loc[stock_summary["ticker"].astype(str).ne("2330")].copy()
+    zoom = pooled_stock_summary.loc[
+        pooled_stock_summary["ticker"].astype(str).ne("2330")
+    ].copy()
     if zoom.empty:
-        zoom = stock_summary.copy()
-    x_zoom = zoom["mean_weekly_market_cap_weight"]
-    y_zoom = zoom["mean_raw_hype"]
+        zoom = pooled_stock_summary.copy()
+    x_zoom = zoom["pooled_market_cap_weight"]
+    y_zoom = zoom["pooled_raw_hype"]
     ax.scatter(x_zoom, y_zoom, alpha=0.78)
     x_limit = max(float(x_zoom.quantile(0.95)) * 1.15, float(x_zoom.max()))
     y_limit = max(float(y_zoom.quantile(0.95)) * 1.15, float(y_zoom.max()))
@@ -1921,8 +2237,8 @@ def render_report_figures(
     ax.set_xlim(left=0, right=x_limit * 1.05 if x_limit else 1.0)
     ax.set_ylim(bottom=0, top=y_limit * 1.05 if y_limit else 1.0)
     ax.set_title(title)
-    ax.set_xlabel("Mean weekly market-cap weight")
-    ax.set_ylabel("Mean raw_hype")
+    ax.set_xlabel("pooled_market_cap_weight")
+    ax.set_ylabel("pooled_raw_hype")
     _style_axis_numbers(ax.xaxis)
     _style_axis_numbers(ax.yaxis)
     annotate = _top_stocks(
@@ -1933,12 +2249,12 @@ def render_report_figures(
     for _, row in annotate.iterrows():
         ax.annotate(
             str(row["ticker"]),
-            (row["mean_weekly_market_cap_weight"], row["mean_raw_hype"]),
+            (row["pooled_market_cap_weight"], row["pooled_raw_hype"]),
             xytext=(4, 4),
             textcoords="offset points",
             fontsize=8,
         )
-    path = figures_dir / "raw_hype_vs_market_cap_weight_scatter_zoom.png"
+    path = figures_dir / "pooled_raw_hype_vs_pooled_market_cap_weight_scatter_zoom.png"
     _save_figure(fig, path, dpi=figure_dpi)
     plt.close(fig)
     figure_paths[path.name] = path
@@ -1953,42 +2269,39 @@ def render_report_figures(
             ),
             input_rows_used=len(zoom),
             dpi=figure_dpi,
-            x_label="Mean weekly market-cap weight",
-            y_label="Mean raw_hype",
+            x_label="pooled_market_cap_weight",
+            y_label="pooled_raw_hype",
             stock_label_count=len(annotate),
         )
     )
 
-    imbalance = stock_summary.copy()
-    imbalance["attention_size_imbalance"] = (
-        imbalance["mean_raw_hype"] - imbalance["mean_weekly_market_cap_weight"]
-    )
-    imbalance["absolute_attention_size_imbalance"] = imbalance[
-        "attention_size_imbalance"
+    imbalance = pooled_stock_summary.copy()
+    imbalance["absolute_pooled_attention_size_imbalance"] = imbalance[
+        "pooled_attention_size_imbalance"
     ].abs()
     top_imbalance = (
         imbalance.sort_values(
-            ["absolute_attention_size_imbalance", "ticker"],
+            ["absolute_pooled_attention_size_imbalance", "ticker"],
             ascending=[False, True],
             kind="stable",
         )
         .head(top_n)
-        .sort_values("attention_size_imbalance", kind="stable")
+        .sort_values("pooled_attention_size_imbalance", kind="stable")
     )
-    title = f"Top {top_n} Attention-Size Imbalances"
+    title = f"Top {top_n} Pooled Attention-Size Imbalances"
     fig, ax = plt.subplots(figsize=(9.5, 5.6))
     labels = [_stock_label(row) for _, row in top_imbalance.iterrows()]
     colors = [
         "tab:blue" if value >= 0 else "tab:orange"
-        for value in top_imbalance["attention_size_imbalance"]
+        for value in top_imbalance["pooled_attention_size_imbalance"]
     ]
-    ax.barh(labels, top_imbalance["attention_size_imbalance"], color=colors)
+    ax.barh(labels, top_imbalance["pooled_attention_size_imbalance"], color=colors)
     ax.axvline(0, color="0.35", linewidth=1)
     ax.set_title(title)
-    ax.set_xlabel("Mean raw_hype minus mean weekly market-cap weight")
+    ax.set_xlabel("pooled_raw_hype minus pooled_market_cap_weight")
     ax.set_ylabel("Stock")
     _style_axis_numbers(ax.xaxis)
-    path = figures_dir / "attention_size_imbalance_top_stocks.png"
+    path = figures_dir / "pooled_attention_size_imbalance_top_stocks.png"
     _save_figure(fig, path, dpi=figure_dpi)
     plt.close(fig)
     figure_paths[path.name] = path
@@ -1997,25 +2310,25 @@ def render_report_figures(
             filename=path.name,
             title=title,
             chart_type="horizontal_bar",
-            purpose="Rank stocks by the largest average attention-size imbalance.",
+            purpose="Rank stocks by the largest pooled attention-size imbalance.",
             input_rows_used=len(top_imbalance),
             dpi=figure_dpi,
-            x_label="Mean raw_hype minus mean weekly market-cap weight",
+            x_label="pooled_raw_hype minus pooled_market_cap_weight",
             y_label="Stock",
             stock_label_count=len(top_imbalance),
         )
     )
 
-    title = f"Top {top_n} Stocks by Mean Market-Cap-Adjusted Hype"
+    title = f"Top {top_n} Stocks by Pooled Market-Cap-Adjusted Hype"
     fig, ax = plt.subplots(figsize=(9.5, 5.6))
     labels = [_stock_label(row) for _, row in top_adjusted.iterrows()]
-    ax.barh(labels, top_adjusted["mean_market_cap_adjusted_hype"])
+    ax.barh(labels, top_adjusted["pooled_market_cap_adjusted_hype"])
     ax.invert_yaxis()
     ax.set_title(title)
-    ax.set_xlabel("Mean market_cap_adjusted_hype")
+    ax.set_xlabel("pooled_market_cap_adjusted_hype")
     ax.set_ylabel("Stock")
     _style_axis_numbers(ax.xaxis)
-    path = figures_dir / "top_mean_market_cap_adjusted_hype.png"
+    path = figures_dir / "top_pooled_market_cap_adjusted_hype_stocks.png"
     _save_figure(fig, path, dpi=figure_dpi)
     plt.close(fig)
     figure_paths[path.name] = path
@@ -2024,10 +2337,10 @@ def render_report_figures(
             filename=path.name,
             title=title,
             chart_type="horizontal_bar",
-            purpose="Rank stocks by average attention-to-size ratio.",
+            purpose="Rank stocks by pooled attention-to-size ratio.",
             input_rows_used=len(top_adjusted),
             dpi=figure_dpi,
-            x_label="Mean market_cap_adjusted_hype",
+            x_label="pooled_market_cap_adjusted_hype",
             y_label="Stock",
             stock_label_count=len(top_adjusted),
         )
@@ -2152,6 +2465,66 @@ def _annotate_key_points(
     return count
 
 
+def _selected_sector_label_codes(
+    sector_pooled: pd.DataFrame,
+    *,
+    max_labels: int = 4,
+) -> list[str]:
+    """Select a small deterministic set of sector outlier labels for figures."""
+
+    if sector_pooled.empty or max_labels <= 0:
+        return []
+
+    selections: list[str] = []
+
+    def add_extreme(metric: str, *, ascending: bool) -> None:
+        if metric not in sector_pooled.columns or len(selections) >= max_labels:
+            return
+        ordered = sector_pooled.sort_values(
+            [metric, "industry_code"],
+            ascending=[ascending, True],
+            kind="stable",
+        )
+        for code in ordered["industry_code"].astype(str):
+            if code not in selections:
+                selections.append(code)
+                break
+
+    add_extreme("pooled_sector_market_cap_weight", ascending=False)
+    add_extreme("pooled_sector_attention_size_imbalance", ascending=False)
+    add_extreme("pooled_sector_attention_size_imbalance", ascending=True)
+    add_extreme("pooled_sector_market_cap_adjusted_hype", ascending=False)
+    return selections[:max_labels]
+
+
+def _annotate_selected_sectors(
+    *,
+    ax: Any,
+    frame: pd.DataFrame,
+    label_codes: Iterable[str],
+) -> int:
+    offsets = [(6, 6), (6, -12), (-28, 8), (-28, -14)]
+    count = 0
+    for label_code in label_codes:
+        rows = frame.loc[frame["industry_code"].astype(str).eq(str(label_code))]
+        if rows.empty:
+            continue
+        row = rows.iloc[0]
+        offset = offsets[count % len(offsets)]
+        ax.annotate(
+            _figure_safe_label(row["industry_code"]),
+            (
+                row["pooled_sector_market_cap_weight"],
+                row["pooled_sector_raw_hype"],
+            ),
+            xytext=offset,
+            textcoords="offset points",
+            fontsize=8,
+        )
+        count += 1
+    return count
+
+
 def _render_sector_heatmap(
     *,
     plt: Any,
@@ -2227,7 +2600,10 @@ def render_market_quant_figures(
         market_inputs=market_inputs,
     )
     sector_weekly = build_sector_weekly_hype_summary(inputs.panel)
-    sector_hype = build_sector_hype_summary(sector_weekly)
+    sector_pooled = build_sector_pooled_hype_summary(
+        hype_panel=inputs.panel,
+        market_inputs=market_inputs,
+    )
     ew_returns = _equal_weight_daily_returns(market_inputs.adjusted_returns)
     ew_returns["cumulative_return"] = (
         1.0 + ew_returns["equal_weight_simple_return"]
@@ -2235,9 +2611,6 @@ def render_market_quant_figures(
     ew_returns["rolling_volatility_20d"] = ew_returns[
         "equal_weight_simple_return"
     ].rolling(20).std() * math.sqrt(252)
-    hype_start = pd.Timestamp(market_inputs.hype_trading_start)
-    hype_end = pd.Timestamp(market_inputs.hype_trading_end)
-    hype_returns = ew_returns.loc[ew_returns["date"].between(hype_start, hype_end)]
 
     title = "Sector Stock Count"
     fig, ax = plt.subplots(figsize=(9.5, 5.8))
@@ -2345,41 +2718,6 @@ def render_market_quant_figures(
         )
     )
 
-    title = "Equal-Weight Return Distribution: Full Sample vs Hype Window"
-    fig, ax = plt.subplots(figsize=(9.5, 5.8))
-    ax.hist(
-        ew_returns["equal_weight_simple_return"].dropna(),
-        bins=30,
-        alpha=0.55,
-        label="Full sample",
-    )
-    ax.hist(
-        hype_returns["equal_weight_simple_return"].dropna(),
-        bins=15,
-        alpha=0.65,
-        label="Hype trading window",
-    )
-    ax.set_title(title)
-    ax.set_xlabel("Equal-weight daily simple return")
-    ax.set_ylabel("Trading-day count")
-    ax.legend()
-    path = figures_dir / "return_distribution_full_vs_hype_window.png"
-    _save_figure(fig, path, dpi=figure_dpi)
-    plt.close(fig)
-    figure_paths[path.name] = path
-    specs.append(
-        FigureSpec(
-            filename=path.name,
-            title=title,
-            chart_type="histogram",
-            purpose="Compare daily return distributions for full sample and Hype window.",
-            input_rows_used=len(ew_returns) + len(hype_returns),
-            dpi=figure_dpi,
-            x_label="Equal-weight daily simple return",
-            y_label="Trading-day count",
-        )
-    )
-
     title = "Raw Hype vs Weekly Return"
     fig, ax = plt.subplots(figsize=(8.8, 5.8))
     ax.scatter(
@@ -2452,34 +2790,26 @@ def render_market_quant_figures(
         )
     )
 
-    title = "Sector News Attention vs Market-Cap Weight"
+    title = "Market-Cap-Adjusted Hype vs Weekly Return"
     fig, ax = plt.subplots(figsize=(8.8, 5.8))
-    sizes = 30 + 8 * sector_hype["total_news_count"].astype(float)
     ax.scatter(
-        sector_hype["mean_sector_market_cap_weight"],
-        sector_hype["mean_sector_raw_hype"],
-        s=sizes,
+        hype_market_panel["market_cap_adjusted_hype"],
+        hype_market_panel["weekly_return"],
         alpha=0.55,
     )
-    line_max = max(
-        float(sector_hype["mean_sector_market_cap_weight"].max()),
-        float(sector_hype["mean_sector_raw_hype"].max()),
+    label_count = _annotate_key_points(
+        ax=ax,
+        frame=hype_market_panel,
+        key_tickers=key_tickers,
+        x_column="market_cap_adjusted_hype",
+        y_column="weekly_return",
     )
-    ax.plot([0, line_max], [0, line_max], color="0.45", linewidth=1)
-    for _, row in sector_hype.iterrows():
-        ax.annotate(
-            _figure_safe_label(row["industry"]),
-            (row["mean_sector_market_cap_weight"], row["mean_sector_raw_hype"]),
-            xytext=(4, 4),
-            textcoords="offset points",
-            fontsize=7,
-        )
     ax.set_title(title)
-    ax.set_xlabel("Mean sector market-cap weight")
-    ax.set_ylabel("Mean sector raw_hype")
+    ax.set_xlabel("market_cap_adjusted_hype")
+    ax.set_ylabel("Weekly simple return")
     _style_axis_numbers(ax.xaxis)
     _style_axis_numbers(ax.yaxis)
-    path = figures_dir / "sector_news_attention_vs_market_cap_weight.png"
+    path = figures_dir / "cap_adjusted_hype_vs_weekly_return_scatter.png"
     _save_figure(fig, path, dpi=figure_dpi)
     plt.close(fig)
     figure_paths[path.name] = path
@@ -2488,11 +2818,208 @@ def render_market_quant_figures(
             filename=path.name,
             title=title,
             chart_type="scatter",
-            purpose="Compare sector news-attention share with sector size.",
-            input_rows_used=len(sector_hype),
+            purpose=(
+                "Show contemporaneous descriptive relation between weekly "
+                "market-cap-adjusted Hype and returns."
+            ),
+            input_rows_used=len(hype_market_panel),
             dpi=figure_dpi,
-            x_label="Mean sector market-cap weight",
-            y_label="Mean sector raw_hype",
+            x_label="market_cap_adjusted_hype",
+            y_label="Weekly simple return",
+            stock_label_count=label_count,
+        )
+    )
+
+    title = "Market-Cap-Adjusted Hype vs Weekly Realized Volatility"
+    fig, ax = plt.subplots(figsize=(8.8, 5.8))
+    ax.scatter(
+        hype_market_panel["market_cap_adjusted_hype"],
+        hype_market_panel["weekly_realized_volatility"],
+        alpha=0.55,
+    )
+    label_count = _annotate_key_points(
+        ax=ax,
+        frame=hype_market_panel,
+        key_tickers=key_tickers,
+        x_column="market_cap_adjusted_hype",
+        y_column="weekly_realized_volatility",
+    )
+    ax.set_title(title)
+    ax.set_xlabel("market_cap_adjusted_hype")
+    ax.set_ylabel("Weekly realized volatility")
+    _style_axis_numbers(ax.xaxis)
+    _style_axis_numbers(ax.yaxis)
+    path = figures_dir / "cap_adjusted_hype_vs_weekly_volatility_scatter.png"
+    _save_figure(fig, path, dpi=figure_dpi)
+    plt.close(fig)
+    figure_paths[path.name] = path
+    specs.append(
+        FigureSpec(
+            filename=path.name,
+            title=title,
+            chart_type="scatter",
+            purpose=(
+                "Show contemporaneous descriptive relation between weekly "
+                "market-cap-adjusted Hype and realized volatility."
+            ),
+            input_rows_used=len(hype_market_panel),
+            dpi=figure_dpi,
+            x_label="market_cap_adjusted_hype",
+            y_label="Weekly realized volatility",
+            stock_label_count=label_count,
+        )
+    )
+
+    title = "Pooled Sector Raw Hype vs Pooled Market-Cap Weight"
+    fig, ax = plt.subplots(figsize=(8.8, 5.8))
+    x = sector_pooled["pooled_sector_market_cap_weight"]
+    y = sector_pooled["pooled_sector_raw_hype"]
+    ax.scatter(x, y, alpha=0.78)
+    line_max = max(float(x.max()), float(y.max())) if len(sector_pooled) else 1.0
+    ax.plot([0, line_max], [0, line_max], color="0.45", linewidth=1)
+    ax.margins(0.14)
+    label_count = _annotate_selected_sectors(
+        ax=ax,
+        frame=sector_pooled,
+        label_codes=_selected_sector_label_codes(sector_pooled),
+    )
+    ax.set_title(title)
+    ax.set_xlabel("pooled_sector_market_cap_weight")
+    ax.set_ylabel("pooled_sector_raw_hype")
+    _style_axis_numbers(ax.xaxis)
+    _style_axis_numbers(ax.yaxis)
+    path = (
+        figures_dir / "pooled_sector_raw_hype_vs_pooled_market_cap_weight_scatter.png"
+    )
+    _save_figure(fig, path, dpi=figure_dpi)
+    plt.close(fig)
+    figure_paths[path.name] = path
+    specs.append(
+        FigureSpec(
+            filename=path.name,
+            title=title,
+            chart_type="scatter",
+            purpose="Compare pooled sector news-attention share with pooled sector size.",
+            input_rows_used=len(sector_pooled),
+            dpi=figure_dpi,
+            x_label="pooled_sector_market_cap_weight",
+            y_label="pooled_sector_raw_hype",
+            stock_label_count=label_count,
+        )
+    )
+
+    title = "Pooled Sector Raw Hype vs Pooled Market-Cap Weight, Lower-Weight Zoom"
+    fig, ax = plt.subplots(figsize=(8.8, 5.8))
+    sector_zoom = sector_pooled.loc[
+        sector_pooled["industry_code"].astype(str).ne("M23G")
+    ].copy()
+    if sector_zoom.empty:
+        sector_zoom = sector_pooled.copy()
+    x_zoom = sector_zoom["pooled_sector_market_cap_weight"]
+    y_zoom = sector_zoom["pooled_sector_raw_hype"]
+    ax.scatter(x_zoom, y_zoom, alpha=0.78)
+    x_limit = max(float(x_zoom.max()) * 1.12, 0.01) if len(sector_zoom) else 1.0
+    y_limit = max(float(y_zoom.max()) * 1.12, 0.01) if len(sector_zoom) else 1.0
+    line_max = max(x_limit, y_limit)
+    ax.plot([0, line_max], [0, line_max], color="0.45", linewidth=1)
+    ax.set_xlim(left=0, right=x_limit)
+    ax.set_ylim(bottom=0, top=y_limit)
+    label_count = _annotate_selected_sectors(
+        ax=ax,
+        frame=sector_zoom,
+        label_codes=_selected_sector_label_codes(sector_zoom, max_labels=3),
+    )
+    ax.set_title(title)
+    ax.set_xlabel("pooled_sector_market_cap_weight")
+    ax.set_ylabel("pooled_sector_raw_hype")
+    _style_axis_numbers(ax.xaxis)
+    _style_axis_numbers(ax.yaxis)
+    path = (
+        figures_dir
+        / "pooled_sector_raw_hype_vs_pooled_market_cap_weight_scatter_zoom.png"
+    )
+    _save_figure(fig, path, dpi=figure_dpi)
+    plt.close(fig)
+    figure_paths[path.name] = path
+    specs.append(
+        FigureSpec(
+            filename=path.name,
+            title=title,
+            chart_type="scatter",
+            purpose="Make lower-weight sector attention-versus-size points readable.",
+            input_rows_used=len(sector_zoom),
+            dpi=figure_dpi,
+            x_label="pooled_sector_market_cap_weight",
+            y_label="pooled_sector_raw_hype",
+            stock_label_count=label_count,
+        )
+    )
+
+    title = "Pooled Sector Market-Cap-Adjusted Hype Ranking"
+    fig, ax = plt.subplots(figsize=(9.5, 5.8))
+    plot_frame = sector_pooled.sort_values(
+        "pooled_sector_market_cap_adjusted_hype",
+        kind="stable",
+    )
+    ax.barh(
+        plot_frame["industry_code"].map(_figure_safe_label),
+        plot_frame["pooled_sector_market_cap_adjusted_hype"],
+    )
+    ax.set_title(title)
+    ax.set_xlabel("pooled_sector_market_cap_adjusted_hype")
+    ax.set_ylabel("Industry code")
+    _style_axis_numbers(ax.xaxis)
+    path = figures_dir / "pooled_sector_market_cap_adjusted_hype_ranking.png"
+    _save_figure(fig, path, dpi=figure_dpi)
+    plt.close(fig)
+    figure_paths[path.name] = path
+    specs.append(
+        FigureSpec(
+            filename=path.name,
+            title=title,
+            chart_type="horizontal_bar",
+            purpose="Rank industries by pooled sector attention-to-size ratio.",
+            input_rows_used=len(plot_frame),
+            dpi=figure_dpi,
+            x_label="pooled_sector_market_cap_adjusted_hype",
+            y_label="Industry code",
+        )
+    )
+
+    title = "Pooled Sector Attention-Size Imbalance"
+    fig, ax = plt.subplots(figsize=(9.5, 5.8))
+    plot_frame = sector_pooled.sort_values(
+        "pooled_sector_attention_size_imbalance",
+        kind="stable",
+    )
+    colors = [
+        "tab:blue" if value >= 0 else "tab:orange"
+        for value in plot_frame["pooled_sector_attention_size_imbalance"]
+    ]
+    ax.barh(
+        plot_frame["industry_code"].map(_figure_safe_label),
+        plot_frame["pooled_sector_attention_size_imbalance"],
+        color=colors,
+    )
+    ax.axvline(0, color="0.35", linewidth=1)
+    ax.set_title(title)
+    ax.set_xlabel("pooled_sector_raw_hype minus pooled_sector_market_cap_weight")
+    ax.set_ylabel("Industry code")
+    _style_axis_numbers(ax.xaxis)
+    path = figures_dir / "pooled_sector_attention_size_imbalance.png"
+    _save_figure(fig, path, dpi=figure_dpi)
+    plt.close(fig)
+    figure_paths[path.name] = path
+    specs.append(
+        FigureSpec(
+            filename=path.name,
+            title=title,
+            chart_type="horizontal_bar",
+            purpose="Show pooled sector attention share minus pooled sector size.",
+            input_rows_used=len(plot_frame),
+            dpi=figure_dpi,
+            x_label="pooled_sector_raw_hype minus pooled_sector_market_cap_weight",
+            y_label="Industry code",
         )
     )
 
@@ -2525,14 +3052,26 @@ def render_market_quant_figures(
             _week_label(row.week_index, row.week_end) for _, row in rows.iterrows()
         ]
         title = f"Key Stock Case Study: {ticker}"
-        fig, axes = plt.subplots(3, 1, figsize=(10.2, 7.2), sharex=True)
+        fig, axes = plt.subplots(5, 1, figsize=(10.4, 11.0), sharex=True)
         axes[0].bar(labels, rows["news_count_unique_urls"])
         axes[0].set_ylabel("News count")
-        axes[1].plot(labels, rows["weekly_return"], marker="o")
-        axes[1].set_ylabel("Weekly return")
-        axes[2].plot(labels, rows["weekly_realized_volatility"], marker="o")
-        axes[2].set_ylabel("Realized volatility")
-        axes[2].set_xlabel("Week end")
+        axes[1].plot(labels, rows["raw_hype"], marker="o", label="raw_hype")
+        axes[1].plot(
+            labels,
+            rows["weekly_market_cap_weight"],
+            marker="o",
+            label="weekly_market_cap_weight",
+        )
+        axes[1].set_ylabel("Weekly share")
+        axes[1].legend(fontsize=8)
+        axes[2].plot(labels, rows["market_cap_adjusted_hype"], marker="o")
+        axes[2].axhline(1.0, color="0.45", linewidth=1)
+        axes[2].set_ylabel("Cap-adjusted Hype")
+        axes[3].plot(labels, rows["weekly_return"], marker="o")
+        axes[3].set_ylabel("Weekly return")
+        axes[4].plot(labels, rows["weekly_realized_volatility"], marker="o")
+        axes[4].set_ylabel("Realized volatility")
+        axes[4].set_xlabel("Week end")
         for axis in axes:
             axis.tick_params(axis="x", labelsize=8)
             _style_axis_numbers(axis.yaxis)
@@ -2546,11 +3085,17 @@ def render_market_quant_figures(
                 filename=path.name,
                 title=title,
                 chart_type="small_multiple",
-                purpose="Show weekly attention, return, and volatility for a key stock.",
+                purpose=(
+                    "Show weekly attention, size, attention-to-size, return, "
+                    "and volatility for a key stock."
+                ),
                 input_rows_used=len(rows),
                 dpi=figure_dpi,
                 x_label="Week end",
-                y_label="News count / weekly return / realized volatility",
+                y_label=(
+                    "News count / Hype share / cap-adjusted Hype / weekly "
+                    "return / realized volatility"
+                ),
             )
         )
 
@@ -2737,17 +3282,19 @@ def write_artifact_manifest(
         for name in [
             "raw_hype_heatmap_top_stocks.png",
             "market_cap_adjusted_hype_heatmap_top_stocks.png",
-            "raw_hype_vs_market_cap_weight_scatter.png",
-            "raw_hype_vs_market_cap_weight_scatter_zoom.png",
-            "attention_size_imbalance_top_stocks.png",
+            "pooled_raw_hype_vs_pooled_market_cap_weight_scatter.png",
+            "pooled_raw_hype_vs_pooled_market_cap_weight_scatter_zoom.png",
+            "pooled_attention_size_imbalance_top_stocks.png",
         ]
         if name in figure_paths
     ]
     payload = {
         "artifact_set": "taiwan_hype_index_pilot_8w_manual_v5",
-        "reporting_layer": "Goal 4A + Goal 4B"
+        "reporting_layer": "Goal 4A + Goal 4B + Goal 4C"
         if market_inputs is not None
         else "Goal 4A",
+        "cross_sectional_hype_reporting": "pooled_only",
+        "mean_hype_cross_sectional_artifacts_deprecated": True,
         "reporting_layers": [
             {
                 "goal": "Goal 4A",
@@ -2766,6 +3313,42 @@ def write_artifact_manifest(
                 "tables": goal4b_tables,
                 "figures": goal4b_figures,
                 "revised_figures": revised_figures,
+            },
+            {
+                "goal": "Goal 4C",
+                "description": (
+                    "Pooled-only stock and sector cross-sectional Hype reporting; "
+                    "weekly Hype retained for dynamics and descriptive return / "
+                    "volatility alignment."
+                ),
+                "tables": [
+                    name
+                    for name in [
+                        "stock_pooled_hype_summary",
+                        "top_pooled_raw_hype_stocks",
+                        "top_pooled_market_cap_adjusted_hype_stocks",
+                        "top_pooled_attention_size_imbalance_stocks",
+                        "sector_pooled_hype_summary",
+                        "top_pooled_sector_market_cap_adjusted_hype",
+                        "tej_industry_label_mapping",
+                    ]
+                    if name in table_paths
+                ],
+                "figures": [
+                    name
+                    for name in [
+                        "top_pooled_raw_hype_stocks.png",
+                        "top_pooled_market_cap_adjusted_hype_stocks.png",
+                        "pooled_raw_hype_vs_pooled_market_cap_weight_scatter.png",
+                        "pooled_raw_hype_vs_pooled_market_cap_weight_scatter_zoom.png",
+                        "pooled_attention_size_imbalance_top_stocks.png",
+                        "pooled_sector_raw_hype_vs_pooled_market_cap_weight_scatter.png",
+                        "pooled_sector_raw_hype_vs_pooled_market_cap_weight_scatter_zoom.png",
+                        "pooled_sector_market_cap_adjusted_hype_ranking.png",
+                        "pooled_sector_attention_size_imbalance.png",
+                    ]
+                    if name in figure_paths
+                ],
             },
         ],
         "results_dir": str(results_dir),
@@ -2877,6 +3460,14 @@ def build_hype_report_artifacts(
         else None
     )
     key_tickers = [str(ticker) for ticker in key_tickers]
+    cleanup_deprecated_report_artifacts(
+        results_dir=resolved_results_dir,
+        figures_dir=resolved_figures_dir,
+    )
+    pooled_stock_summary = build_stock_pooled_hype_summary(
+        hype_panel=inputs.panel,
+        market_inputs=market_inputs,
+    )
 
     table_paths, methodology_notes = build_report_tables(
         inputs=inputs,
@@ -2889,6 +3480,7 @@ def build_hype_report_artifacts(
         panel=inputs.panel,
         weekly_summary=inputs.weekly_summary,
         stock_summary=inputs.stock_summary,
+        pooled_stock_summary=pooled_stock_summary,
         figures_dir=resolved_figures_dir,
         top_n=top_n,
         figure_dpi=figure_dpi,

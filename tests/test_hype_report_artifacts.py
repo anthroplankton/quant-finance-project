@@ -22,20 +22,22 @@ REQUIRED_TABLES = [
     "weekly_news_totals",
     "weekly_hype_summary",
     "top_stock_news_counts",
-    "top_raw_hype_stocks",
-    "top_market_cap_adjusted_hype_stocks",
+    "stock_pooled_hype_summary",
+    "top_pooled_raw_hype_stocks",
+    "top_pooled_market_cap_adjusted_hype_stocks",
+    "top_pooled_attention_size_imbalance_stocks",
     "zero_news_stock_summary",
 ]
 REQUIRED_FIGURES = [
     "weekly_news_counts.png",
     "top_stock_news_counts.png",
-    "top_mean_raw_hype.png",
-    "top_mean_market_cap_adjusted_hype.png",
+    "top_pooled_raw_hype_stocks.png",
+    "top_pooled_market_cap_adjusted_hype_stocks.png",
     "raw_hype_heatmap_top_stocks.png",
     "market_cap_adjusted_hype_heatmap_top_stocks.png",
-    "raw_hype_vs_market_cap_weight_scatter.png",
-    "raw_hype_vs_market_cap_weight_scatter_zoom.png",
-    "attention_size_imbalance_top_stocks.png",
+    "pooled_raw_hype_vs_pooled_market_cap_weight_scatter.png",
+    "pooled_raw_hype_vs_pooled_market_cap_weight_scatter_zoom.png",
+    "pooled_attention_size_imbalance_top_stocks.png",
     "zero_news_stock_weeks.png",
 ]
 MARKET_TABLES = [
@@ -46,7 +48,9 @@ MARKET_TABLES = [
     "basic_return_statistics_full_vs_hype_window",
     "hype_return_volatility_correlation_summary",
     "key_stock_case_study_summary",
-    "sector_hype_summary",
+    "sector_pooled_hype_summary",
+    "top_pooled_sector_market_cap_adjusted_hype",
+    "tej_industry_label_mapping",
     "sector_weekly_hype_summary",
 ]
 MARKET_FIGURES = [
@@ -54,10 +58,14 @@ MARKET_FIGURES = [
     "sector_market_cap_weight.png",
     "equal_weight_cumulative_return_hype_window.png",
     "equal_weight_rolling_volatility_20d_hype_window.png",
-    "return_distribution_full_vs_hype_window.png",
     "hype_vs_weekly_return_scatter.png",
     "hype_vs_weekly_volatility_scatter.png",
-    "sector_news_attention_vs_market_cap_weight.png",
+    "cap_adjusted_hype_vs_weekly_return_scatter.png",
+    "cap_adjusted_hype_vs_weekly_volatility_scatter.png",
+    "pooled_sector_raw_hype_vs_pooled_market_cap_weight_scatter.png",
+    "pooled_sector_raw_hype_vs_pooled_market_cap_weight_scatter_zoom.png",
+    "pooled_sector_market_cap_adjusted_hype_ranking.png",
+    "pooled_sector_attention_size_imbalance.png",
     "sector_market_cap_adjusted_hype_heatmap.png",
     "key_stock_case_study_2330.png",
     "key_stock_case_study_2454.png",
@@ -630,6 +638,15 @@ def test_build_report_artifacts_writes_required_tables_and_figures(
         assert md_path.stat().st_size > 0
     assert paths.methodology_notes.is_file()
     assert "not an exact full-year replication" in paths.methodology_notes.read_text()
+    pooled_stock = pd.read_csv(paths.results_dir / "stock_pooled_hype_summary.csv")
+    assert {
+        "pooled_raw_hype",
+        "pooled_market_cap_weight",
+        "pooled_market_cap_adjusted_hype",
+        "pooled_attention_size_imbalance",
+    }.issubset(pooled_stock.columns)
+    assert "mean_raw_hype" not in pooled_stock.columns
+    assert "mean_market_cap_adjusted_hype" not in pooled_stock.columns
 
     for filename in REQUIRED_FIGURES:
         figure_path = paths.figures_dir / filename
@@ -668,6 +685,40 @@ def test_build_report_artifacts_writes_required_tables_and_figures(
     assert not list(paths.figures_dir.rglob("*.ipynb"))
     assert not (tmp_path / "data/raw").exists()
     assert not (tmp_path / "data/processed").exists()
+
+
+def test_build_report_artifacts_removes_deprecated_mean_outputs(
+    tmp_path: Path,
+) -> None:
+    pytest.importorskip("matplotlib")
+    inputs = _write_inputs(tmp_path)
+    results_dir = tmp_path / "report/results/pilot_8w"
+    figures_dir = tmp_path / "report/figures/pilot_8w"
+    results_dir.mkdir(parents=True)
+    figures_dir.mkdir(parents=True)
+    stale_table = results_dir / "top_raw_hype_stocks.csv"
+    stale_figure = figures_dir / "top_mean_raw_hype.png"
+    stale_return_figure = figures_dir / "return_distribution_full_vs_hype_window.png"
+    stale_table.write_text("stale\n", encoding="utf-8")
+    stale_figure.write_bytes(b"stale")
+    stale_return_figure.write_bytes(b"stale")
+
+    build_hype_report_artifacts(
+        hype_panel_file=inputs["panel"],
+        weekly_summary_file=inputs["weekly"],
+        stock_summary_file=inputs["stock"],
+        hype_summary_json=inputs["summary"],
+        chunk_summary_json=[inputs["chunk_1"], inputs["chunk_2"]],
+        results_dir=results_dir,
+        figures_dir=figures_dir,
+        top_n=2,
+        figure_dpi=160,
+        repo_root=tmp_path,
+    )
+
+    assert not stale_table.exists()
+    assert not stale_figure.exists()
+    assert not stale_return_figure.exists()
 
 
 def test_build_report_artifacts_writes_goal4b_market_quant_outputs(
@@ -722,15 +773,41 @@ def test_build_report_artifacts_writes_goal4b_market_quant_outputs(
     case_study = pd.read_csv(paths.results_dir / "key_stock_case_study_summary.csv")
     assert set(case_study["ticker"].astype(str)) == set(DEFAULT_KEY_TICKERS)
     assert case_study["week_end"].max() == "2025-04-18"
+    assert {
+        "pooled_raw_hype",
+        "pooled_market_cap_weight",
+        "pooled_market_cap_adjusted_hype",
+    }.issubset(case_study.columns)
+    sector_pooled = pd.read_csv(paths.results_dir / "sector_pooled_hype_summary.csv")
+    assert {
+        "industry_code",
+        "pooled_sector_raw_hype",
+        "pooled_sector_market_cap_weight",
+        "pooled_sector_market_cap_adjusted_hype",
+    }.issubset(sector_pooled.columns)
+    industry_mapping = pd.read_csv(paths.results_dir / "tej_industry_label_mapping.csv")
+    assert "full_original_industry_label" in industry_mapping.columns
 
     manifest = json.loads(paths.artifact_manifest.read_text(encoding="utf-8"))
     assert manifest["market_quant_included"] is True
-    assert manifest["reporting_layer"] == "Goal 4A + Goal 4B"
+    assert manifest["reporting_layer"] == "Goal 4A + Goal 4B + Goal 4C"
+    assert manifest["cross_sectional_hype_reporting"] == "pooled_only"
     goal4b = [
         layer for layer in manifest["reporting_layers"] if layer["goal"] == "Goal 4B"
     ][0]
     assert set(MARKET_TABLES).issubset(goal4b["tables"])
-    assert "raw_hype_vs_market_cap_weight_scatter_zoom.png" in goal4b["revised_figures"]
+    assert (
+        "pooled_raw_hype_vs_pooled_market_cap_weight_scatter_zoom.png"
+        in goal4b["revised_figures"]
+    )
+    goal4c = [
+        layer for layer in manifest["reporting_layers"] if layer["goal"] == "Goal 4C"
+    ][0]
+    assert "stock_pooled_hype_summary" in goal4c["tables"]
+    assert (
+        "pooled_sector_raw_hype_vs_pooled_market_cap_weight_scatter.png"
+        in goal4c["figures"]
+    )
 
 
 def test_build_report_artifacts_records_missing_optional_chunk_summaries(

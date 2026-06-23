@@ -195,6 +195,14 @@ a reporting and visualization layer only: it does not run live GDELT downloads,
 does not recompute Goal 3A / 3B / 3C, and does not change GDELT matching or
 Hype methodology.
 
+Goal 4C further revises the report layer so stock-level and sector-level
+cross-sectional Hype rankings use pooled pilot-window quantities rather than
+equal-week arithmetic mean Hype. This is not a news-acquisition or matching
+change: the selected manual-v5 alias policy, GDELT matching scope, weekly
+`news_count_unique_urls`, and Goal 3C weekly Hype formulas remain unchanged.
+Weekly Hype is still used for dynamics and contemporaneous descriptive return /
+volatility alignment, not for cross-sectional ranking.
+
 `scripts/build_gdelt_weekly_counts.py` reads the selected chunks'
 `probe_summary.json` and `stock_day_counts.csv`, validates that the chunks
 completed without failed files or threshold failures, rejects capped probe

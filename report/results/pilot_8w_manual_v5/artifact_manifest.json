@@ -1,11 +1,13 @@
 {
   "artifact_set": "taiwan_hype_index_pilot_8w_manual_v5",
   "chunk_summary_count": 2,
+  "cross_sectional_hype_reporting": "pooled_only",
   "figure_dpi": 160,
   "figure_index_csv": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/figure_index.csv",
   "figure_index_markdown": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/figure_index.md",
   "figure_names": [
-    "attention_size_imbalance_top_stocks.png",
+    "cap_adjusted_hype_vs_weekly_return_scatter.png",
+    "cap_adjusted_hype_vs_weekly_volatility_scatter.png",
     "equal_weight_cumulative_return_hype_window.png",
     "equal_weight_rolling_volatility_20d_hype_window.png",
     "hype_vs_weekly_return_scatter.png",
@@ -15,23 +17,27 @@
     "key_stock_case_study_2357.png",
     "key_stock_case_study_2454.png",
     "market_cap_adjusted_hype_heatmap_top_stocks.png",
+    "pooled_attention_size_imbalance_top_stocks.png",
+    "pooled_raw_hype_vs_pooled_market_cap_weight_scatter.png",
+    "pooled_raw_hype_vs_pooled_market_cap_weight_scatter_zoom.png",
+    "pooled_sector_attention_size_imbalance.png",
+    "pooled_sector_market_cap_adjusted_hype_ranking.png",
+    "pooled_sector_raw_hype_vs_pooled_market_cap_weight_scatter.png",
+    "pooled_sector_raw_hype_vs_pooled_market_cap_weight_scatter_zoom.png",
     "raw_hype_heatmap_top_stocks.png",
-    "raw_hype_vs_market_cap_weight_scatter.png",
-    "raw_hype_vs_market_cap_weight_scatter_zoom.png",
-    "return_distribution_full_vs_hype_window.png",
     "sector_market_cap_adjusted_hype_heatmap.png",
     "sector_market_cap_weight.png",
-    "sector_news_attention_vs_market_cap_weight.png",
     "sector_stock_count.png",
-    "top_mean_market_cap_adjusted_hype.png",
-    "top_mean_raw_hype.png",
+    "top_pooled_market_cap_adjusted_hype_stocks.png",
+    "top_pooled_raw_hype_stocks.png",
     "top_stock_news_counts.png",
     "weekly_news_counts.png",
     "zero_news_stock_weeks.png"
   ],
   "figure_visual_qa_manifest_json": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/figure_visual_qa_manifest.json",
   "figures": {
-    "attention_size_imbalance_top_stocks.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/attention_size_imbalance_top_stocks.png",
+    "cap_adjusted_hype_vs_weekly_return_scatter.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/cap_adjusted_hype_vs_weekly_return_scatter.png",
+    "cap_adjusted_hype_vs_weekly_volatility_scatter.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/cap_adjusted_hype_vs_weekly_volatility_scatter.png",
     "equal_weight_cumulative_return_hype_window.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/equal_weight_cumulative_return_hype_window.png",
     "equal_weight_rolling_volatility_20d_hype_window.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/equal_weight_rolling_volatility_20d_hype_window.png",
     "hype_vs_weekly_return_scatter.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/hype_vs_weekly_return_scatter.png",
@@ -41,16 +47,19 @@
     "key_stock_case_study_2357.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/key_stock_case_study_2357.png",
     "key_stock_case_study_2454.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/key_stock_case_study_2454.png",
     "market_cap_adjusted_hype_heatmap_top_stocks.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/market_cap_adjusted_hype_heatmap_top_stocks.png",
+    "pooled_attention_size_imbalance_top_stocks.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/pooled_attention_size_imbalance_top_stocks.png",
+    "pooled_raw_hype_vs_pooled_market_cap_weight_scatter.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/pooled_raw_hype_vs_pooled_market_cap_weight_scatter.png",
+    "pooled_raw_hype_vs_pooled_market_cap_weight_scatter_zoom.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/pooled_raw_hype_vs_pooled_market_cap_weight_scatter_zoom.png",
+    "pooled_sector_attention_size_imbalance.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/pooled_sector_attention_size_imbalance.png",
+    "pooled_sector_market_cap_adjusted_hype_ranking.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/pooled_sector_market_cap_adjusted_hype_ranking.png",
+    "pooled_sector_raw_hype_vs_pooled_market_cap_weight_scatter.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/pooled_sector_raw_hype_vs_pooled_market_cap_weight_scatter.png",
+    "pooled_sector_raw_hype_vs_pooled_market_cap_weight_scatter_zoom.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/pooled_sector_raw_hype_vs_pooled_market_cap_weight_scatter_zoom.png",
     "raw_hype_heatmap_top_stocks.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/raw_hype_heatmap_top_stocks.png",
-    "raw_hype_vs_market_cap_weight_scatter.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/raw_hype_vs_market_cap_weight_scatter.png",
-    "raw_hype_vs_market_cap_weight_scatter_zoom.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/raw_hype_vs_market_cap_weight_scatter_zoom.png",
-    "return_distribution_full_vs_hype_window.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/return_distribution_full_vs_hype_window.png",
     "sector_market_cap_adjusted_hype_heatmap.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/sector_market_cap_adjusted_hype_heatmap.png",
     "sector_market_cap_weight.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/sector_market_cap_weight.png",
-    "sector_news_attention_vs_market_cap_weight.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/sector_news_attention_vs_market_cap_weight.png",
     "sector_stock_count.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/sector_stock_count.png",
-    "top_mean_market_cap_adjusted_hype.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/top_mean_market_cap_adjusted_hype.png",
-    "top_mean_raw_hype.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/top_mean_raw_hype.png",
+    "top_pooled_market_cap_adjusted_hype_stocks.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/top_pooled_market_cap_adjusted_hype_stocks.png",
+    "top_pooled_raw_hype_stocks.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/top_pooled_raw_hype_stocks.png",
     "top_stock_news_counts.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/top_stock_news_counts.png",
     "weekly_news_counts.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/weekly_news_counts.png",
     "zero_news_stock_weeks.png": "/home/dongj/projects/quant-finance-project/report/figures/pilot_8w_manual_v5/zero_news_stock_weeks.png"
@@ -69,22 +78,23 @@
     "start": "2025-04-01"
   },
   "market_quant_included": true,
+  "mean_hype_cross_sectional_artifacts_deprecated": true,
   "methodology_notes": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/methodology_notes.md",
   "notebook_created": false,
-  "reporting_layer": "Goal 4A + Goal 4B",
+  "reporting_layer": "Goal 4A + Goal 4B + Goal 4C",
   "reporting_layers": [
     {
       "description": "Hype report artifacts from existing Goal 3C outputs.",
       "figures": [
         "weekly_news_counts.png",
         "top_stock_news_counts.png",
-        "top_mean_raw_hype.png",
-        "top_mean_market_cap_adjusted_hype.png",
+        "top_pooled_raw_hype_stocks.png",
+        "top_pooled_market_cap_adjusted_hype_stocks.png",
         "raw_hype_heatmap_top_stocks.png",
         "market_cap_adjusted_hype_heatmap_top_stocks.png",
-        "raw_hype_vs_market_cap_weight_scatter.png",
-        "raw_hype_vs_market_cap_weight_scatter_zoom.png",
-        "attention_size_imbalance_top_stocks.png",
+        "pooled_raw_hype_vs_pooled_market_cap_weight_scatter.png",
+        "pooled_raw_hype_vs_pooled_market_cap_weight_scatter_zoom.png",
+        "pooled_attention_size_imbalance_top_stocks.png",
         "zero_news_stock_weeks.png"
       ],
       "goal": "Goal 4A",
@@ -94,8 +104,10 @@
         "weekly_news_totals",
         "weekly_hype_summary",
         "top_stock_news_counts",
-        "top_raw_hype_stocks",
-        "top_market_cap_adjusted_hype_stocks",
+        "stock_pooled_hype_summary",
+        "top_pooled_raw_hype_stocks",
+        "top_pooled_market_cap_adjusted_hype_stocks",
+        "top_pooled_attention_size_imbalance_stocks",
         "zero_news_stock_summary"
       ]
     },
@@ -106,10 +118,14 @@
         "sector_market_cap_weight.png",
         "equal_weight_cumulative_return_hype_window.png",
         "equal_weight_rolling_volatility_20d_hype_window.png",
-        "return_distribution_full_vs_hype_window.png",
         "hype_vs_weekly_return_scatter.png",
         "hype_vs_weekly_volatility_scatter.png",
-        "sector_news_attention_vs_market_cap_weight.png",
+        "cap_adjusted_hype_vs_weekly_return_scatter.png",
+        "cap_adjusted_hype_vs_weekly_volatility_scatter.png",
+        "pooled_sector_raw_hype_vs_pooled_market_cap_weight_scatter.png",
+        "pooled_sector_raw_hype_vs_pooled_market_cap_weight_scatter_zoom.png",
+        "pooled_sector_market_cap_adjusted_hype_ranking.png",
+        "pooled_sector_attention_size_imbalance.png",
         "sector_market_cap_adjusted_hype_heatmap.png",
         "key_stock_case_study_2330.png",
         "key_stock_case_study_2454.png",
@@ -120,9 +136,9 @@
       "revised_figures": [
         "raw_hype_heatmap_top_stocks.png",
         "market_cap_adjusted_hype_heatmap_top_stocks.png",
-        "raw_hype_vs_market_cap_weight_scatter.png",
-        "raw_hype_vs_market_cap_weight_scatter_zoom.png",
-        "attention_size_imbalance_top_stocks.png"
+        "pooled_raw_hype_vs_pooled_market_cap_weight_scatter.png",
+        "pooled_raw_hype_vs_pooled_market_cap_weight_scatter_zoom.png",
+        "pooled_attention_size_imbalance_top_stocks.png"
       ],
       "tables": [
         "data_source_summary",
@@ -132,8 +148,34 @@
         "basic_return_statistics_full_vs_hype_window",
         "hype_return_volatility_correlation_summary",
         "key_stock_case_study_summary",
-        "sector_hype_summary",
+        "sector_pooled_hype_summary",
+        "top_pooled_sector_market_cap_adjusted_hype",
+        "tej_industry_label_mapping",
         "sector_weekly_hype_summary"
+      ]
+    },
+    {
+      "description": "Pooled-only stock and sector cross-sectional Hype reporting; weekly Hype retained for dynamics and descriptive return / volatility alignment.",
+      "figures": [
+        "top_pooled_raw_hype_stocks.png",
+        "top_pooled_market_cap_adjusted_hype_stocks.png",
+        "pooled_raw_hype_vs_pooled_market_cap_weight_scatter.png",
+        "pooled_raw_hype_vs_pooled_market_cap_weight_scatter_zoom.png",
+        "pooled_attention_size_imbalance_top_stocks.png",
+        "pooled_sector_raw_hype_vs_pooled_market_cap_weight_scatter.png",
+        "pooled_sector_raw_hype_vs_pooled_market_cap_weight_scatter_zoom.png",
+        "pooled_sector_market_cap_adjusted_hype_ranking.png",
+        "pooled_sector_attention_size_imbalance.png"
+      ],
+      "goal": "Goal 4C",
+      "tables": [
+        "stock_pooled_hype_summary",
+        "top_pooled_raw_hype_stocks",
+        "top_pooled_market_cap_adjusted_hype_stocks",
+        "top_pooled_attention_size_imbalance_stocks",
+        "sector_pooled_hype_summary",
+        "top_pooled_sector_market_cap_adjusted_hype",
+        "tej_industry_label_mapping"
       ]
     }
   ],
@@ -146,12 +188,16 @@
     "key_stock_case_study_summary",
     "news_acquisition_summary",
     "pipeline_validation_summary",
-    "sector_hype_summary",
     "sector_market_structure_summary",
+    "sector_pooled_hype_summary",
     "sector_weekly_hype_summary",
+    "stock_pooled_hype_summary",
+    "tej_industry_label_mapping",
     "tej_market_validation_summary",
-    "top_market_cap_adjusted_hype_stocks",
-    "top_raw_hype_stocks",
+    "top_pooled_attention_size_imbalance_stocks",
+    "top_pooled_market_cap_adjusted_hype_stocks",
+    "top_pooled_raw_hype_stocks",
+    "top_pooled_sector_market_cap_adjusted_hype",
     "top_stock_news_counts",
     "universe_summary",
     "weekly_hype_summary",
@@ -183,29 +229,45 @@
       "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/pipeline_validation_summary.csv",
       "markdown": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/pipeline_validation_summary.md"
     },
-    "sector_hype_summary": {
-      "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/sector_hype_summary.csv",
-      "markdown": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/sector_hype_summary.md"
-    },
     "sector_market_structure_summary": {
       "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/sector_market_structure_summary.csv",
       "markdown": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/sector_market_structure_summary.md"
+    },
+    "sector_pooled_hype_summary": {
+      "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/sector_pooled_hype_summary.csv",
+      "markdown": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/sector_pooled_hype_summary.md"
     },
     "sector_weekly_hype_summary": {
       "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/sector_weekly_hype_summary.csv",
       "markdown": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/sector_weekly_hype_summary.md"
     },
+    "stock_pooled_hype_summary": {
+      "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/stock_pooled_hype_summary.csv",
+      "markdown": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/stock_pooled_hype_summary.md"
+    },
+    "tej_industry_label_mapping": {
+      "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/tej_industry_label_mapping.csv",
+      "markdown": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/tej_industry_label_mapping.md"
+    },
     "tej_market_validation_summary": {
       "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/tej_market_validation_summary.csv",
       "markdown": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/tej_market_validation_summary.md"
     },
-    "top_market_cap_adjusted_hype_stocks": {
-      "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/top_market_cap_adjusted_hype_stocks.csv",
-      "markdown": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/top_market_cap_adjusted_hype_stocks.md"
+    "top_pooled_attention_size_imbalance_stocks": {
+      "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/top_pooled_attention_size_imbalance_stocks.csv",
+      "markdown": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/top_pooled_attention_size_imbalance_stocks.md"
     },
-    "top_raw_hype_stocks": {
-      "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/top_raw_hype_stocks.csv",
-      "markdown": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/top_raw_hype_stocks.md"
+    "top_pooled_market_cap_adjusted_hype_stocks": {
+      "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/top_pooled_market_cap_adjusted_hype_stocks.csv",
+      "markdown": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/top_pooled_market_cap_adjusted_hype_stocks.md"
+    },
+    "top_pooled_raw_hype_stocks": {
+      "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/top_pooled_raw_hype_stocks.csv",
+      "markdown": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/top_pooled_raw_hype_stocks.md"
+    },
+    "top_pooled_sector_market_cap_adjusted_hype": {
+      "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/top_pooled_sector_market_cap_adjusted_hype.csv",
+      "markdown": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/top_pooled_sector_market_cap_adjusted_hype.md"
     },
     "top_stock_news_counts": {
       "csv": "/home/dongj/projects/quant-finance-project/report/results/pilot_8w_manual_v5/top_stock_news_counts.csv",

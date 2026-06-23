@@ -2,6 +2,44 @@
 
 ## 2026-06-23
 
+### Final Goal 4C cleanup and first notebook draft
+
+* Removed `return_distribution_full_vs_hype_window.png` from the core report /
+  notebook figure set and regenerated the manual-v5 report artifact manifests.
+  The return statistics table, equal-weight cumulative-return figure, and
+  20-day rolling-volatility figure remain in the package.
+* Reduced labels on the pooled sector attention-versus-size scatter figures so
+  only selected industry-code outliers are annotated; the TEJ industry code /
+  Chinese-label mapping remains available as a report table.
+* Created the first draft report notebook at
+  `notebooks/taiwan_hype_index_pilot_8w_report.ipynb`. The notebook reads
+  curated report tables and figures only, has no executed outputs, and does not
+  run raw GDELT acquisition, TEJ preprocessing, Goal 3A / Goal 3B / Goal 3C, or
+  report-artifact generation.
+* This step did not run live GDELT downloads, did not recompute Goal 3A,
+  Goal 3B, or Goal 3C, did not change weekly Hype formulas, and did not add
+  prediction, sentiment, portfolio, trading, or investment-advice outputs.
+
+### Goal 4C pooled-only Hype reporting
+
+* Revised the report-artifact layer so stock-level and sector-level
+  cross-sectional Hype rankings use pooled 8-week quantities only:
+  pooled raw Hype, pooled market-cap weight, and pooled
+  market-cap-adjusted Hype.
+* Removed mean-based cross-sectional Hype tables and figures from the core
+  report artifact set. Weekly Hype remains only for time-path heatmaps,
+  key-stock weekly case studies, and contemporaneous descriptive return /
+  volatility comparisons.
+* Added pooled stock and sector tables, TEJ industry label mapping, pooled
+  stock and sector scatter/ranking figures, cap-adjusted weekly Hype return /
+  volatility scatters, and expanded key-stock case-study figures.
+* Updated the Markdown notebook plan to use a pooled Hype methodology section
+  and to explain why arithmetic mean weekly Hype is not used for
+  cross-sectional rankings.
+* This step did not rerun live GDELT downloads, did not recompute Goal 3A,
+  Goal 3B, or Goal 3C, did not change weekly Hype formulas, and did not create
+  the final `.ipynb` notebook.
+
 ### Goal 4B market quant and notebook-ready artifacts
 
 * Extended the report-artifact builder to add Goal 4B notebook-ready outputs on

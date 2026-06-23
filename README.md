@@ -274,6 +274,13 @@ Hype-window TEJ trading-date comparison is 2025-04-07 to 2025-05-29; the
 are required to reproduce the current report tables that include GDELT
 acquisition diagnostics.
 
+Goal 4C converts stock-level and sector-level cross-sectional reporting to
+pooled Hype only. Report rankings, tables, and attention-versus-size scatter
+figures use total pilot-window news share divided by pooled market-cap weight,
+not the arithmetic mean of weekly Hype values. Weekly Hype remains in the
+report artifacts only for time-path heatmaps, key-stock weekly case studies,
+and contemporaneous descriptive return / volatility comparisons.
+
 The completed manual-v5 local pilot has 400 Goal 3A stock-week news-count rows,
 400 Goal 3B Hype-ready input rows, and 400 Goal 3C Hype Index rows. All three
 validation summaries passed. The two selected GDELT chunks processed 5,372 of
